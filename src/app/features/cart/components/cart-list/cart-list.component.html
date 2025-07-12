@@ -1,0 +1,182 @@
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Loading State: Shown only on the very first load -->
+  @if (basketQuery.isPending() && !basketQuery.data() &&
+  basketQuery.fetchStatus() !== 'idle') {
+  <div class="flex justify-center items-center h-96">
+    <p-progressSpinner
+      aria-label="Loading cart"
+      styleClass="w-12 h-12"
+      strokeWidth="4"
+    />
+    <span class="ml-4 text-lg text-gray-600">Loading Your Cart...</span>
+  </div>
+  }
+
+  <!-- Error State -->
+  @else if (basketQuery.isError()) {
+  <div
+    class="text-center py-20 bg-white rounded-2xl shadow-lg border border-red-200"
+  >
+    <div
+      class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6"
+    >
+      <i class="pi pi-times text-4xl text-red-600"></i>
+    </div>
+    <h2 class="text-3xl font-bold text-gray-800 mb-2">Something Went Wrong</h2>
+    <p class="text-gray-600 mb-8 max-w-md mx-auto">
+      We couldn't load your cart at this time. Please try refreshing the page.
+    </p>
+    <p-button
+      label="Try Again"
+      icon="pi pi-refresh"
+      (click)="basketQuery.refetch()"
+    />
+  </div>
+  }
+
+  <!-- Empty Cart State -->
+  @else if (!localCartItems().length) {
+  <div class="text-center py-20 bg-white rounded-2xl shadow-lg">
+    <div
+      class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-6"
+    >
+      <i class="pi pi-shopping-cart text-4xl text-blue-600"></i>
+    </div>
+    <h2 class="text-3xl font-bold text-gray-800 mb-2">Your Cart is Empty</h2>
+    <p class="text-gray-600 mb-8">
+      Looks like you haven't added anything yet. Let's find something!
+    </p>
+    <p-button
+      label="Start Shopping"
+      icon="pi pi-arrow-right"
+      iconPos="right"
+      routerLink="/products"
+      size="large"
+    />
+  </div>
+  }
+
+  <!-- Cart with Items -->
+  @else {
+  <div class="grid lg:grid-cols-3 gap-8 items-start">
+    <div class="lg:col-span-2 space-y-4">
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-3xl font-bold text-gray-800">Your Cart</h1>
+        @if(isCartDirty()) {
+        <p-button
+          label="Update Cart"
+          icon="pi pi-check"
+          (onClick)="updateCart()"
+          [loading]="updateBasketMutation.isPending()"
+          styleClass="p-button-success"
+          pTooltip="Save quantity changes"
+          tooltipPosition="left"
+        />
+        } @else {
+        <p-button
+          label="Clear Cart"
+          severity="danger"
+          [text]="true"
+          (click)="clearCart()"
+          [loading]="deleteBasketMutation.isPending()"
+        />
+        }
+      </div>
+
+      @for (item of localCartItems(); track item.id) {
+      <div
+        class="flex items-center gap-4 p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
+      >
+        <img
+          [src]="item.pictureUrl"
+          [alt]="item.productName"
+          class="w-24 h-24 object-cover rounded-md flex-shrink-0"
+        />
+        <div class="flex-grow">
+          <h3 class="font-semibold text-lg text-gray-800">
+            {{ item.productName }}
+          </h3>
+          <p class="text-gray-600">{{ item.price | currency }}</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <p-inputNumber
+            [ngModel]="item.quantity"
+            (ngModelChange)="onQuantityChange(item.id, $event)"
+            [min]="1"
+            [max]="99"
+            [showButtons]="true"
+            buttonLayout="horizontal"
+            inputId="horizontal_{{ item.id }}"
+            decrementButtonClass="p-button-secondary"
+            incrementButtonClass="p-button-secondary"
+            incrementButtonIcon="pi pi-plus"
+            decrementButtonIcon="pi pi-minus"
+            [disabled]="
+              updateBasketMutation.isPending() ||
+              deleteBasketMutation.isPending()
+            "
+            styleClass="w-32"
+          ></p-inputNumber>
+          <p class="font-bold text-lg w-24 text-right">
+            {{ item.price * item.quantity | currency }}
+          </p>
+          <p-button
+            icon="pi pi-trash"
+            severity="danger"
+            [rounded]="true"
+            [text]="true"
+            (onClick)="removeItem(item)"
+            pTooltip="Remove item"
+            tooltipPosition="top"
+            [disabled]="
+              updateBasketMutation.isPending() ||
+              deleteBasketMutation.isPending()
+            "
+          ></p-button>
+        </div>
+      </div>
+      }
+    </div>
+
+    <!-- Order Summary Column -->
+    <div class="lg:col-span-1 sticky top-24">
+      <p-card header="Order Summary" styleClass="shadow-lg">
+        <div class="space-y-4">
+          <div class="flex justify-between text-lg">
+            <span>Subtotal</span>
+            <span class="font-semibold">{{ getSubtotal() | currency }}</span>
+          </div>
+          <div class="flex justify-between text-lg">
+            <span>Shipping</span>
+            <span class="font-semibold">{{
+              basketQuery.data()?.shippingPrice | currency
+            }}</span>
+          </div>
+          <hr class="my-2 border-gray-200" />
+          <div class="flex justify-between text-2xl font-bold text-gray-900">
+            <span>Total</span>
+            <span>{{ getTotalPrice() | currency }}</span>
+          </div>
+        </div>
+        <ng-template pTemplate="footer">
+          <p-button
+            label="Proceed to Checkout"
+            icon="pi pi-lock"
+            styleClass="w-full"
+            size="large"
+            routerLink="/orders/checkout"
+            [disabled]="
+              isCartDirty() ||
+              deleteBasketMutation.isPending() ||
+              updateBasketMutation.isPending()
+            "
+            pTooltip="Please update your cart before proceeding"
+            [tooltipDisabled]="!isCartDirty()"
+            tooltipPosition="top"
+          ></p-button>
+        </ng-template>
+      </p-card>
+    </div>
+  </div>
+  }
+</div>

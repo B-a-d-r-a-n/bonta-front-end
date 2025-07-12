@@ -1,0 +1,162 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">My Orders</h1>
+      <p-button
+        label="Continue Shopping"
+        icon="pi pi-shopping-cart"
+        styleClass="p-button-outlined"
+        (click)="continueShopping()"
+      ></p-button>
+    </div>
+
+    @if (isOrdersLoading()) {
+    <div class="flex justify-center items-center h-64">
+      <div
+        class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"
+      ></div>
+    </div>
+    } @else if (ordersError()) {
+    <div
+      class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"
+    >
+      <strong>Error:</strong> Failed to load orders.
+    </div>
+    } @else if (!ordersData() || ordersData()!.length === 0) {
+    <div class="text-center py-12">
+      <div class="text-gray-500 mb-4">
+        <i class="pi pi-shopping-bag text-6xl"></i>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-900 mb-2">No Orders Yet</h3>
+      <p class="text-gray-600 mb-6">
+        You haven't placed any orders yet. Start shopping to see your orders
+        here.
+      </p>
+      <p-button
+        label="Start Shopping"
+        icon="pi pi-shopping-cart"
+        (click)="continueShopping()"
+      ></p-button>
+    </div>
+    } @else {
+    <div class="space-y-6">
+      @for (order of ordersData()!; track order.id) {
+      <p-card>
+        <div class="space-y-4">
+          <!-- Order Header -->
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">
+                Order #{{ order.id.substring(0, 8) }}
+              </h3>
+              <p class="text-sm text-gray-600">
+                Placed on {{ order.orderDate | date : "mediumDate" }}
+              </p>
+            </div>
+            <div class="flex items-center space-x-3">
+              <p-tag
+                [value]="getStatusLabel(order.status)"
+                [styleClass]="getStatusColor(order.status)"
+              ></p-tag>
+              <p-button
+                label="View Details"
+                icon="pi pi-eye"
+                styleClass="p-button-sm p-button-outlined"
+                (click)="viewOrderDetails(order.id)"
+              ></p-button>
+            </div>
+          </div>
+
+          <!-- Order Items -->
+          <div class="border-t pt-4">
+            <div class="space-y-3">
+              @for (item of order.items; track item.productId) {
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                  <img
+                    [src]="item.pictureUrl"
+                    [alt]="item.productName"
+                    class="w-12 h-12 object-cover rounded"
+                  />
+                  <div>
+                    <div class="font-medium text-gray-900">
+                      {{ item.productName }}
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      Qty: {{ item.quantity }}
+                    </div>
+                  </div>
+                </div>
+                <div class="font-medium text-gray-900">
+                  {{ item.price * item.quantity | currency }}
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+
+          <!-- Order Summary -->
+          <div class="border-t pt-4">
+            <div class="flex justify-between items-center">
+              <div class="space-y-1">
+                <div class="text-sm text-gray-600">
+                  Delivery: {{ order.deliveryMethod }}
+                </div>
+                <div class="text-sm text-gray-600">
+                  Address: {{ order.shipToAddress.street }},
+                  {{ order.shipToAddress.city }}
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm text-gray-600">
+                  Subtotal: {{ order.subtotal | currency }}
+                </div>
+                <div class="text-sm text-gray-600">
+                  Shipping: {{ order.deliveryCost | currency }}
+                </div>
+                <div class="font-bold text-lg text-gray-900">
+                  Total: {{ order.total | currency }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Actions -->
+          <div class="border-t pt-4">
+            <div class="flex justify-between items-center">
+              <div class="text-sm text-gray-600">
+                Payment ID: {{ order.paymentIntentId.substring(0, 12) }}...
+              </div>
+              <div class="flex space-x-2">
+                @if (order.status === 'Pending') {
+                <p-button
+                  label="Cancel Order"
+                  icon="pi pi-times"
+                  styleClass="p-button-sm p-button-danger p-button-outlined"
+                  (click)="cancelOrder(order.id)"
+                ></p-button>
+                } @if (order.status === 'Shipped') {
+                <p-button
+                  label="Track Package"
+                  icon="pi pi-truck"
+                  styleClass="p-button-sm p-button-outlined"
+                  (click)="trackPackage(order.id)"
+                ></p-button>
+                } @if (order.status === 'Delivered') {
+                <p-button
+                  label="Write Review"
+                  icon="pi pi-star"
+                  styleClass="p-button-sm p-button-outlined"
+                  (click)="writeReview(order.id)"
+                ></p-button>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </p-card>
+      }
+    </div>
+    }
+  </div>
+</div>

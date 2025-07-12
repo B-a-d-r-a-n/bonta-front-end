@@ -1,0 +1,35 @@
+// Profile Component Styles
+.profile {
+  &__header {
+    color: #1f2937;
+    font-weight: 700;
+  }
+  
+  &__card {
+    transition: box-shadow 0.3s ease;
+    
+    &:hover {
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  &__stat {
+    transition: transform 0.2s ease;
+    
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+  
+  &__button {
+    transition: all 0.2s ease;
+    
+    &:hover {
+      transform: translateY(-1px);
+    }
+  }
+  
+  &__divider {
+    border-color: #e5e7eb;
+  }
+} 

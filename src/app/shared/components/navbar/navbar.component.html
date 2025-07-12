@@ -1,0 +1,121 @@
+<nav
+  class="w-full bg-white/80 backdrop-blur-lg border-b border-gray-200 shadow-sm sticky top-0 z-[1020]"
+>
+  <div
+    class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16"
+  >
+    <!-- Logo and Desktop Nav -->
+    <div class="flex items-center gap-8">
+      <a routerLink="/" class="flex items-center gap-2 flex-shrink-0">
+        <div
+          class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold text-lg"
+        >
+          B
+        </div>
+        <span class="font-bold text-xl text-gray-900 hidden sm:block"
+          >Boon</span
+        >
+      </a>
+      <ul class="hidden lg:flex gap-6 text-sm font-medium text-gray-700">
+        <li>
+          <a
+            routerLink="/products"
+            routerLinkActive="text-primary-600"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="hover:text-primary-600 transition-colors"
+            >Shop All</a
+          >
+        </li>
+      </ul>
+    </div>
+
+    <!-- User Actions and Mobile Menu -->
+    <div class="flex items-center gap-2">
+      <p-button
+        icon="pi pi-shopping-cart"
+        [rounded]="true"
+        [text]="true"
+        severity="secondary"
+        routerLink="/cart"
+        pBadge
+        [value]="
+          cartService.itemCount() > 0 ? cartService.itemCount().toString() : ''
+        "
+      ></p-button>
+
+      @if(isAuthenticated()){
+      <p-button
+        icon="pi pi-user"
+        [label]="currentUser()?.displayName"
+        (onClick)="menu.toggle($event)"
+        [text]="true"
+        severity="secondary"
+      />
+      <p-tieredMenu #menu [model]="userMenuItems" [popup]="true"></p-tieredMenu>
+      } @else {
+      <p-button
+        label="Log In"
+        routerLink="/user/login"
+        styleClass="hidden sm:inline-flex"
+        size="small"
+      ></p-button>
+      <p-button
+        icon="pi pi-user"
+        [rounded]="true"
+        [text]="true"
+        severity="secondary"
+        routerLink="/user/login"
+        styleClass="sm:hidden"
+      ></p-button>
+      }
+
+      <p-button
+        icon="pi pi-bars"
+        [text]="true"
+        severity="secondary"
+        (click)="sidebarVisible.set(true)"
+        class="lg:hidden"
+      ></p-button>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile Sidebar -->
+<p-drawer [(visible)]="sidebarVisible" position="right">
+  <ng-template pTemplate="header">
+    <span class="font-bold text-xl">Menu</span>
+  </ng-template>
+  <ul class="flex flex-col gap-4 text-lg p-4">
+    <li>
+      <a
+        routerLink="/products"
+        (click)="sidebarVisible.set(false)"
+        class="p-2 block"
+        >Shop All</a
+      >
+    </li>
+    <li>
+      <a
+        routerLink="/orders"
+        (click)="sidebarVisible.set(false)"
+        class="p-2 block"
+        >My Orders</a
+      >
+    </li>
+    <li>
+      <a
+        routerLink="/user/profile"
+        (click)="sidebarVisible.set(false)"
+        class="p-2 block"
+        >Profile</a
+      >
+    </li>
+    @if(isAuthenticated()){
+    <li>
+      <a (click)="logout()" class="p-2 block cursor-pointer text-red-500"
+        >Logout</a
+      >
+    </li>
+    }
+  </ul>
+</p-drawer>

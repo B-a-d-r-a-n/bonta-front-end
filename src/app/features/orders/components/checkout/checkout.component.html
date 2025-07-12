@@ -1,0 +1,253 @@
+<div class="my-8">
+  <div class="max-w-4xl mx-auto">
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold text-gray-900">Checkout</h1>
+      <p class="text-lg text-gray-600 mt-2">
+        Just a few more steps to complete your order.
+      </p>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-12 items-start">
+      <!-- Steps and Form Column -->
+      <div class="lg:col-span-2">
+        <p-steps
+          [model]="steps"
+          [(activeIndex)]="activeStepIndex"
+          [readonly]="true"
+        ></p-steps>
+
+        <div class="mt-8 p-6 bg-white rounded-lg shadow-md">
+          @switch (checkoutStore.currentStep()) { @case ('address') {
+          <h2 class="text-2xl font-semibold mb-6">Shipping Address</h2>
+          @if(isAddressLoading()) {
+          <div class="flex justify-center p-8"><p-progressSpinner /></div>
+          } @else {
+          <form
+            [formGroup]="addressForm"
+            class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4"
+          >
+            <!-- First Name -->
+            <div class="flex flex-col gap-1">
+              <label for="firstName" class="font-semibold">First Name</label>
+              <input
+                pInputText
+                id="firstName"
+                formControlName="firstName"
+                placeholder="John"
+                [class.p-invalid]="isInvalid('firstName')"
+              />
+              @if (isInvalid('firstName')) {
+              <small class="p-error">First name is required.</small> }
+            </div>
+
+            <!-- Last Name -->
+            <div class="flex flex-col gap-1">
+              <label for="lastName" class="font-semibold">Last Name</label>
+              <input
+                pInputText
+                id="lastName"
+                formControlName="lastName"
+                placeholder="Doe"
+                [class.p-invalid]="isInvalid('lastName')"
+              />
+              @if (isInvalid('lastName')) {
+              <small class="p-error">Last name is required.</small> }
+            </div>
+
+            <!-- Street Address -->
+            <div class="md:col-span-2 flex flex-col gap-1">
+              <label for="street" class="font-semibold">Street Address</label>
+              <input
+                pInputText
+                id="street"
+                formControlName="street"
+                placeholder="123 Main St"
+                [class.p-invalid]="isInvalid('street')"
+              />
+              @if (isInvalid('street')) {
+              <small class="p-error">Street address is required.</small> }
+            </div>
+
+            <!-- City -->
+            <div class="flex flex-col gap-1">
+              <label for="city" class="font-semibold">City</label>
+              <input
+                pInputText
+                id="city"
+                formControlName="city"
+                placeholder="New York"
+                [class.p-invalid]="isInvalid('city')"
+              />
+              @if (isInvalid('city')) {
+              <small class="p-error">City is required.</small> }
+            </div>
+
+            <!-- Country -->
+            <div class="flex flex-col gap-1">
+              <label for="country" class="font-semibold">Country</label>
+              <input
+                pInputText
+                id="country"
+                formControlName="country"
+                placeholder="USA"
+                [class.p-invalid]="isInvalid('country')"
+              />
+              @if (isInvalid('country')) {
+              <small class="p-error">Country is required.</small> }
+            </div>
+
+            <!-- Save Address Checkbox -->
+            <div class="md:col-span-2 flex items-center gap-2 mt-4">
+              <p-checkbox
+                formControlName="saveAddress"
+                [binary]="true"
+                inputId="saveAddress"
+              ></p-checkbox>
+              <label for="saveAddress" class="cursor-pointer"
+                >Save this address for future orders</label
+              >
+            </div>
+          </form>
+          } } @case ('delivery') {
+          <h2 class="text-2xl font-semibold mb-6">Delivery Method</h2>
+          @if (isDeliveryMethodsLoading()) {
+          <div class="flex justify-center p-8"><p-progressSpinner /></div>
+          } @else { @if (deliveryMethodsData(); as methods) {
+          <div class="space-y-4">
+            @for (method of methods; track method.id) {
+            <div
+              (click)="onDeliveryMethodChange(method)"
+              class="flex items-center p-4 border rounded-lg cursor-pointer transition-all"
+              [ngClass]="{
+                'border-blue-500 ring-2 ring-blue-200':
+                  checkoutStore.deliveryMethod()?.id === method.id,
+                'border-gray-200':
+                  checkoutStore.deliveryMethod()?.id !== method.id
+              }"
+            >
+              <p-radioButton
+                name="deliveryMethod"
+                [value]="method"
+                [ngModel]="checkoutStore.deliveryMethod()"
+                [inputId]="'method' + method.id"
+              />
+              <label
+                [for]="'method' + method.id"
+                class="ml-4 flex-grow cursor-pointer"
+              >
+                <span class="font-semibold">{{ method.shortName }}</span> -
+                <span class="font-bold">{{ method.price | currency }}</span>
+                <p class="text-sm text-gray-500">
+                  {{ method.deliveryTime }} - {{ method.description }}
+                </p>
+              </label>
+            </div>
+            }
+          </div>
+          } } } @case ('review') {
+          <h2 class="text-2xl font-semibold mb-6">Review Your Order</h2>
+          <div
+            class="space-y-6 p-6 border border-gray-200 rounded-lg bg-gray-50"
+          >
+            <div>
+              <h3 class="font-semibold text-lg mb-2">Shipping To:</h3>
+              @if(checkoutStore.address(); as address) {
+              <p class="text-gray-700">
+                {{ address.firstName }} {{ address.lastName }}
+              </p>
+              <p class="text-gray-700">
+                {{ address.street }}, {{ address.city }}, {{ address.country }}
+              </p>
+              }
+            </div>
+            <p-divider></p-divider>
+            <div>
+              <h3 class="font-semibold text-lg mb-2">Delivery Method:</h3>
+              @if(checkoutStore.deliveryMethod(); as method) {
+              <p class="text-gray-700">
+                {{ method.shortName }} ({{ method.price | currency }})
+              </p>
+              }
+            </div>
+            <p-divider></p-divider>
+            <div>
+              <h3 class="font-semibold text-lg mb-2">Items:</h3>
+              <p class="text-gray-700">
+                {{ basketData()?.items?.length || 0 }} items in your cart.
+              </p>
+            </div>
+          </div>
+          } @case ('payment') {
+          <h2 class="text-2xl font-semibold mb-6">Payment</h2>
+          <p class="text-center text-gray-500 py-8">
+            Payment gateway integration coming soon.
+          </p>
+          } }
+        </div>
+      </div>
+
+      <!-- Order Summary Column -->
+      <div class="lg:col-span-1 sticky top-24">
+        @if (basketData(); as basket) {
+        <p-card header="Order Summary" styleClass="shadow-medium">
+          <div class="space-y-2 mb-4 max-h-60 overflow-y-auto pr-2">
+            @for (item of basket.items; track item.id) {
+            <div class="flex justify-between items-center text-sm">
+              <span class="truncate pr-2"
+                >{{ item.productName }} x {{ item.quantity }}</span
+              >
+              <span class="font-medium text-right">{{
+                item.price * item.quantity | currency
+              }}</span>
+            </div>
+            }
+          </div>
+          <p-divider></p-divider>
+          <div class="space-y-2 mt-4">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Subtotal</span
+              ><span class="font-medium">{{ getSubtotal() | currency }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Shipping</span
+              ><span class="font-medium">{{
+                checkoutStore.deliveryMethod()?.price || 0 | currency
+              }}</span>
+            </div>
+            <p-divider></p-divider>
+            <div class="flex justify-between font-bold text-xl mt-2">
+              <span>Total</span><span>{{ getTotalPrice() | currency }}</span>
+            </div>
+          </div>
+        </p-card>
+        }
+        <div class="mt-6 flex justify-between">
+          <p-button
+            label="Back"
+            icon="pi pi-arrow-left"
+            (onClick)="prevStep()"
+            [disabled]="activeStepIndex() === 0"
+            severity="secondary"
+          ></p-button>
+          @if (checkoutStore.currentStep() !== 'review') {
+          <p-button
+            label="Next"
+            icon="pi pi-arrow-right"
+            iconPos="right"
+            (onClick)="nextStep()"
+            [disabled]="!canProceed()"
+          ></p-button>
+          } @else {
+          <p-button
+            label="Place Order"
+            icon="pi pi-check"
+            (onClick)="onSubmit()"
+            [loading]="isCreateOrderPending()"
+            [disabled]="!canProceed()"
+          ></p-button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

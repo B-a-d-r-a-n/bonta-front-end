@@ -1,0 +1,14 @@
+<div
+  class="loading-spinner"
+  [class.overlay]="overlay"
+  [class.small]="size === 'small'"
+  [class.medium]="size === 'medium'"
+  [class.large]="size === 'large'"
+  [attr.aria-label]="ariaLabel"
+  role="status"
+>
+  <div class="spinner"></div>
+  @if (message) {
+  <div class="message">{{ message }}</div>
+  }
+</div>

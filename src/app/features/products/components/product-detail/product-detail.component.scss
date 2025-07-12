@@ -1,0 +1,69 @@
+// Product Detail Component Styles
+.product-detail {
+  &__header {
+    color: #1f2937;
+    font-weight: 700;
+  }
+  
+  &__image {
+    transition: transform 0.3s ease;
+    
+    &:hover {
+      transform: scale(1.02);
+    }
+  }
+  
+  &__thumbnail {
+    transition: all 0.2s ease;
+    cursor: pointer;
+    
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+  
+  &__price {
+    color: #2563eb;
+    font-weight: 700;
+  }
+  
+  &__quantity {
+    .quantity-control {
+      transition: all 0.2s ease;
+      
+      &:hover:not(:disabled) {
+        transform: scale(1.05);
+      }
+    }
+  }
+  
+  &__button {
+    transition: all 0.2s ease;
+    
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+  
+  &__shipping {
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    border: 1px solid #e5e7eb;
+  }
+  
+  &__related {
+    .skeleton {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+} 

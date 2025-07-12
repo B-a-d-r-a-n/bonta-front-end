@@ -1,0 +1,639 @@
+# .cursorrules for Angular 20 E-commerce Project
+
+# Last Updated: July 2025
+
+# Project Overview: Angular 20 e-commerce front-end with TanStack Query for server/client state, component-specific Signals for local UI state, NgRx for complex client-side state (checkout, filters), PrimeNG with Tailwind CSS for UI, and Feature-Based Structure. Integrates with a .NET e-commerce API.
+
+## General Rules
+
+- **Angular Version**: Use Angular 20 (latest as of July 2025). Follow Angular best practices per the official documentation: https://angular.dev/
+- **Zoneless Change Detection**: Use zoneless change detection for performance. Configure in `app.config.ts` with `provideZonelessChangeDetection()`. Docs: https://angular.dev/guide/essentials/change-detection#zoneless
+- **Feature-Based Structure**: Organize code by features (`products/`, `cart/`, `orders/`, `user/`, `payments/`) with subfolders for `components/`, `queries/` (TanStack Query), and `store/` (NgRx). See project structure: https://angular.dev/guide/style-guide#application-structure
+- **TypeScript**: Use strict TypeScript (v5.5+). Enable `strict` mode in `tsconfig.json`. Docs: https://www.typescriptlang.org/docs/
+- **Accessibility (A11y)**: Follow WCAG 2.2 guidelines (Level AA). Ensure ARIA attributes, keyboard navigation, and semantic HTML. Docs: https://www.w3.org/TR/WCAG22/
+  - Use `aria-label`, `role`, and `tabindex` where needed.
+  - Ensure PrimeNG components are accessible (e.g., `<p-button>` with `aria-label`).
+  - Test with screen readers (e.g., NVDA, VoiceOver).
+- **UI/UX Conventions**: Follow modern e-commerce UI/UX patterns (e.g., Material Design, Fluent Design). Ensure responsive design with Tailwind CSS and clear user feedback (e.g., toasts, loading states). Reference: https://m2.material.io/design
+- **Code Style**: Follow Angular Style Guide. Use ESLint with `@angular-eslint` and Prettier for consistent formatting. Docs: https://angular.dev/guide/style-guide
+
+- don't ever use [pt] in prime components
+
+## Data Models & Type Safety
+- **Model Location**: Place all interface definitions in `src/app/core/models/` organized by domain:
+
+  - `basket.model.ts` - Basket and cart-related interfaces
+  - `product.model.ts` - Product, brand, and type interfaces
+  - `order.model.ts` - Order and delivery method interfaces
+  - `auth.model.ts` - Authentication and user interfaces
+  - `error.model.ts` - Error handling interfaces
+  - `paginated-response.model.ts` - Generic pagination interface
+
+- **Required Model Interfaces**:
+
+  ```typescript
+  // Basket Models
+  export interface BasketDTO {
+    id: string;
+    items: BasketItemDTO[];
+    paymentIntentId?: string;
+    clientSecret?: string;
+    deliveryMethodId?: number;
+    shippingPrice: number;
+  }
+
+  export interface BasketItemDTO {
+    id: number; // Product ID
+    productName: string;
+    pictureUrl: string;
+    price: number;
+    quantity: number;
+  }
+
+  // Product Models
+  export interface ProductResponse {
+    id: number;
+    name: string;
+    description: string;
+    pictureUrl: string;
+    price: number;
+    productType: string;
+    productBrand: string;
+  }
+
+  export interface ProductQueryParameters {
+    brandId?: number;
+    typeId?: number;
+    sort: ProductSortingOptions;
+    search?: string;
+    pageIndex: number;
+    pageSize: number;
+  }
+
+  export enum ProductSortingOptions {
+    NameAsc = "NameAsc",
+    NameDesc = "NameDesc",
+    PriceAsc = "PriceAsc",
+    PriceDesc = "PriceDesc",
+  }
+
+  // Order Models
+  export interface OrderRequest {
+    basketId: string;
+    shipToAddress: AddressDTO;
+    deliveryMethodId: number;
+  }
+
+  export interface OrderResponse {
+    id: string; // Guid as string
+    buyerEmail: string;
+    orderDate: string; // ISO date string
+    shipToAddress: AddressDTO;
+    deliveryMethod: string;
+    items: OrderItemDTO[];
+    status: string;
+    paymentIntentId: string;
+    subtotal: number;
+    total: number;
+    deliveryCost: number;
+  }
+
+  // Authentication Models
+  export interface LoginRequest {
+    email: string;
+    password: string;
+  }
+
+  export interface RegisterRequest {
+    email: string;
+    password: string;
+    displayName: string;
+    userName: string;
+    phoneNumber?: string;
+  }
+
+  export interface UserResponse {
+    email: string;
+    displayName: string;
+    token: string;
+  }
+
+  // Error Models
+  export interface ErrorDetails {
+    statusCode: number;
+    errorMessage: string;
+    errors?: string[];
+  }
+
+  export interface ValidationErrorResponse {
+    statusCode: number;
+    errorMessage: string;
+    validationErrors: ValidationError[];
+  }
+
+  export interface ValidationError {
+    field: string;
+    errors: string[];
+  }
+
+  // Pagination Model
+  export interface PaginatedResponse<T> {
+    pageIndex: number;
+    pageSize: number;
+    count: number;
+    data: T[];
+  }
+  ```
+
+- **Type Safety Rules**:
+  - Always use these exact interface names and structures
+  - Import models from `@core/models/` using barrel exports
+  - Use strict typing for all API responses and requests
+  - Implement proper type guards for runtime type checking
+
+## Dependency-Specific Rules
+
+1. **TanStack Query for Angular (@tanstack/angular-query-experimental)**
+
+   - **Purpose**: Manage server-side state (e.g., `/api/Baskets`, `/api/Products`, `/api/Orders`) and client-side state via cache.
+   - **Rules**:
+     - Use `injectQuery` and `injectMutation` in `queries/` folders (e.g., `cart.queries.ts`).
+     - `injectQuery` syntax: Pass a function that returns the query options object:
+       ```typescript
+       query = injectQuery(() => ({
+         queryKey: ["todos"],
+         queryFn: () =>
+           lastValueFrom(this.http.get<TodoResponse[]>("/api/todos")),
+       }));
+       ```
+     - `injectMutation` syntax: Pass a function that returns the mutation options object:
+       ```typescript
+       mutation = injectMutation(() => ({
+         mutationFn: (data: CreateTodoRequest) =>
+           lastValueFrom(this.http.post<TodoResponse>("/api/todos", data)),
+         onSuccess: () =>
+           this.queryClient.invalidateQueries({ queryKey: ["todos"] }),
+       }));
+       ```
+     - Access query/mutation state using signal syntax: `query.data()`, `query.isPending()`, `query.error()`, `mutation.isPending()`.
+     - Use `inject(QueryClient)` to access the QueryClient for operations like `invalidateQueries`.
+     - Convert Angular HttpClient Observables to Promises using `lastValueFrom` for compatibility with TanStack Query.
+     - Implement optimistic updates with `queryClient.setQueryData` and rollback in `onError`.
+     - Set `staleTime: 5 * 60 * 1000` (5 minutes) for caching unless specified otherwise.
+     - Use `refetch()` in `ngOnInit` to ensure data is fetched or cached.
+     - Avoid duplicating server state in Signals or NgRx; use `query.data()` directly.
+     - **Retry Strategy**: Use `retry: 3` for mutations and `retry: 1` for queries by default.
+     - **Error Handling**: Implement global error handling with `onError` callbacks and toast notifications using `ErrorDetails` and `ValidationErrorResponse` interfaces.
+     - **Template Usage**: Use Angular control flow with signals: `@if (query.isPending()) { Loading... } @else if (query.error()) { Error } @else { {{ query.data() }} }`
+   - **Docs**: https://tanstack.com/query/latest/docs/framework/angular/overview
+
+2. **Angular Signals**
+
+   - **Purpose**: Manage component-specific UI state (e.g., `addLoading`, `removeLoading`, `saving`) and computed state (e.g., cart `itemCount`, `total`).
+   - **Rules**:
+     - Use `signal()` for local state (e.g., `saving = signal(false)`).
+     - Use `computed()` for derived state (e.g., `itemCount` calculated from `BasketDTO.items`).
+     - Avoid global Signals; use TanStack Query for shared server state and NgRx for complex client state.
+     - Ensure reactivity in templates with `@if`, `@for`, and Signal bindings.
+     - Use proper typing with signals: `signal<BasketDTO | null>(null)`, `computed<number>(() => ...)`
+   - **Docs**: https://angular.dev/guide/signals
+
+3. **NgRx SignalStore (v19.2.1)**
+
+   - **Purpose**: Manage complex client-side state (e.g., checkout flow, product filters) using signal-based store.
+   - **Rules**:
+     - Use `signalStore` with `withState`, `withMethods`, and `withHooks` for feature stores.
+     - Place NgRx SignalStore files in `store/` subfolders (e.g., `orders/store/`, `products/store/`).
+     - Use `patchState` for state updates and computed signals for derived state.
+     - Create feature stores for each domain (e.g., `CheckoutStore`, `ProductFilterStore`).
+     - Use `withEntities` for entity management when needed.
+     - Implement `withHooks` for side effects (e.g., saving filters to localStorage).
+     - Avoid NgRx for server-synced state (e.g., cart items, products).
+     - Use proper typing with interfaces: `withState<{ filters: ProductQueryParameters }>`
+     - Example structure:
+       ```typescript
+       export const CheckoutStore = signalStore(
+         { providedIn: "root" },
+         withState<CheckoutState>({
+           currentStep: CheckoutStep.Address,
+           address: null as AddressDTO | null,
+           deliveryMethod: null as DeliveryMethodResponse | null,
+           orderRequest: null as OrderRequest | null,
+         }),
+         withMethods((store) => ({
+           updateStep: (step: CheckoutStep) =>
+             patchState(store, { currentStep: step }),
+           setAddress: (address: AddressDTO) => patchState(store, { address }),
+           setDeliveryMethod: (method: DeliveryMethodResponse) =>
+             patchState(store, { deliveryMethod: method }),
+         })),
+         withHooks({
+           onInit: (store) => {
+             // Initialize from localStorage
+           },
+         })
+       );
+       ```
+   - **Docs**: https://ngrx.io/guide/signals
+
+4. **PrimeNG (v20.x)**
+
+   - **Purpose**: Provide UI components (e.g., `<p-button>`, `<p-dropdown>`, `<p-inputtext>`).
+   - **Rules**:
+     - Use standalone components (e.g., `imports: [ButtonModule, DropdownModule]`).
+     - Style with Tailwind CSS classes for consistency (e.g., `bg-blue-500 text-white p-2 rounded`).
+     - Ensure accessibility: Add `aria-label`, `aria-disabled`, and keyboard support.
+     - Wrap PrimeNG components in `shared/components/` for reusability (e.g., `button.component.ts`).
+     - Use proper typing for component inputs: `[options]="brands() as BrandResponse[]"`
+   - **Docs**: https://primeng.org/
+
+5. **Tailwind CSS (v4.1)**
+   - **Purpose**: Style PrimeNG components and custom UI for responsive design.
+   - **Rules**:
+     - Configure in `styles.css` and `tailwind.config.js`.
+     - Use utility-first classes (e.g., `flex justify-between`, `grid grid-cols-3 gap-4`).
+     - Ensure responsive design with mobile-first classes (e.g., `sm:`, `md:`).
+     - Maintain WCAG 2.2 contrast ratios (e.g., use `text-white` on `bg-blue-500`).
+   - **Docs**: https://tailwindcss.com/docs
+
+## API Integration Rules
+
+- **API Base URL**: Use environment variables (`environment.ts`, `environment.prod.ts`) for `/api/` endpoints.
+- **Endpoints & Type Mapping**:
+  - `/api/Authentication`:
+    - POST `/login` - `LoginRequest` → `UserResponse`
+    - POST `/register` - `RegisterRequest` → `UserResponse`
+    - GET `/checkEmailExists/{email}` - `boolean`
+    - GET `/address` - `AddressDTO`
+    - PUT `/address` - `AddressDTO` → `AddressDTO`
+    - GET `/currentUser` - `UserResponse`
+  - `/api/Baskets`:
+    - GET `/{id}` - `BasketDTO`
+    - POST - `BasketDTO` → `BasketDTO`
+    - DELETE `/{id}` - `void`
+  - `/api/Orders`:
+    - POST - `OrderRequest` → `OrderResponse`
+    - GET - `OrderResponse[]`
+    - GET `/deliveryMethods` - `DeliveryMethodResponse[]`
+  - `/api/Payments`:
+    - POST `/{basketId}` - `BasketDTO` (with payment intent)
+    - POST `/WebHook` - webhook handling
+  - `/api/Products`:
+    - GET - `PaginatedResponse<ProductResponse>` with `ProductQueryParameters`
+    - GET `/{id}` - `ProductResponse`
+    - GET `/brands` - `BrandResponse[]`
+    - GET `/types` - `TypeResponse[]`
+- **Rules**:
+  - Map API endpoints to TanStack Query in `queries/` with proper typing.
+  - Use `HttpClient` with `lastValueFrom()` and generic types: `this.http.get<ProductResponse[]>(...)`
+  - Handle authentication with `auth.interceptor.ts` to attach JWT tokens.
+  - Use NgRx SignalStore for temporary state with proper interfaces.
+  - Ensure error handling using `ErrorDetails` and `ValidationErrorResponse` interfaces.
+
+## Error Handling Strategy
+
+- **Global Error Interceptor**: Create `error.interceptor.ts` to handle HTTP errors globally using `ErrorDetails` interface.
+- **Error Type Usage**: Use the defined error interfaces consistently:
+  - `ErrorDetails` for general API errors
+  - `ValidationErrorResponse` for form validation errors
+  - `ValidationError` for individual field errors
+- **TanStack Query Error Handling**:
+  - Use `onError` callbacks with typed error parameters: `onError: (error: ErrorDetails) => {...}`
+  - Implement global error handling with `queryClient.setMutationDefaults`
+  - Show appropriate toast messages based on error types
+  - Access errors using signal syntax: `query.error() as ErrorDetails`
+- **NgRx SignalStore Error Handling**:
+  - Use `patchState` to update error state with typed interfaces
+  - Create computed signals for error messages
+  - Implement error recovery methods in store
+
+## Performance Optimization
+
+- **Lazy Loading**: Use route-level and component-level lazy loading with standalone components:
+
+  ```typescript
+  // Route-level lazy loading
+  {
+    path: 'products',
+    loadChildren: () => import('./features/products/products.routes').then(m => m.PRODUCTS_ROUTES)
+  }
+
+  // Component-level lazy loading
+  {
+    path: 'analytics',
+    loadComponent: () => import('./components/analytics-dashboard/analytics-dashboard.component').then(m => m.AnalyticsDashboardComponent)
+  }
+  ```
+
+- **Bundle Splitting**: Configure webpack to split bundles by feature and vendor libraries
+- **Image Optimization**:
+  - Use WebP format with fallbacks
+  - Implement lazy loading for product images using `ProductResponse.pictureUrl`
+  - Use responsive images with `srcset`
+- **TanStack Query Optimization**:
+  - Use `staleTime` and `cacheTime` appropriately
+  - Implement background refetching for frequently updated data
+  - Use `select` to prevent unnecessary re-renders
+  - Implement proper cache invalidation for related data
+
+## Project Structure
+
+- **Core**: Global utilities (`services/`, `guards/`, `interceptors/`, `models/`, `constants/`, `enums/`).
+- **Features**: Organize by feature (`products/`, `cart/`, `orders/`, `user/`, `payments/`).
+  - `components/`: Standalone Angular components with PrimeNG and Signals.
+  - `queries/`: TanStack Query with `injectQuery` and `injectMutation` for API calls and optimistic updates.
+  - `store/`: NgRx SignalStore for complex client-side state (e.g., `orders/store/` for checkout).
+- **Shared**: Reusable components (`button`, `dropdown`), utils (`cart.utils.ts`), layouts, pipes.
+- **Models**: Centralized in `src/app/core/models/` with barrel exports.
+- **Docs**: https://angular.dev/guide/style-guide#application-structure
+
+## Testing Strategy
+
+- **Unit Testing**:
+  - Use Jest for components, services, and utilities
+  - Test TanStack Query with mock query client and typed responses
+  - Test NgRx with mock store and proper interface typing
+  - Test accessibility with axe-core: https://www.deque.com/axe/
+  - Mock API responses using the defined interfaces
+- **Integration Testing**:
+  - Test component interactions with TanStack Query signals and typed data
+  - Test NgRx SignalStore state changes with proper interfaces
+  - Test API integration with mock backends returning typed responses
+- **E2E Testing**:
+  - Use Cypress or Playwright for user journey testing
+  - Test critical paths: login, add to cart, checkout
+  - Test responsive design on different screen sizes
+  - Validate proper error handling with different error types
+- **Testing Patterns**:
+
+  ```typescript
+  // TanStack Query testing with types
+  const mockQueryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
+  const mockProductResponse: ProductResponse = {
+    id: 1,
+    name: "Test Product",
+    description: "Test Description",
+    pictureUrl: "test.jpg",
+    price: 99.99,
+    productType: "Electronics",
+    productBrand: "TestBrand",
+  };
+
+  // NgRx SignalStore testing with typed state
+  const testStore = signalStore(
+    withState<TestState>({
+      products: [] as ProductResponse[],
+      loading: false,
+      error: null as ErrorDetails | null,
+    }),
+    withMethods((store) => ({
+      setProducts: (products: ProductResponse[]) =>
+        patchState(store, { products }),
+      setError: (error: ErrorDetails) => patchState(store, { error }),
+    }))
+  );
+  ```
+
+## Code Quality & Standards
+
+- **ESLint Configuration**:
+  ```json
+  {
+    "extends": [
+      "@angular-eslint/recommended",
+      "@angular-eslint/template/process-inline-templates"
+    ],
+    "rules": {
+      "@angular-eslint/directive-selector": [
+        "error",
+        { "type": "attribute", "prefix": "app" }
+      ],
+      "@angular-eslint/component-selector": [
+        "error",
+        { "type": "element", "prefix": "app" }
+      ],
+      "prefer-const": "error",
+      "no-unused-vars": "error",
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/explicit-function-return-type": "warn"
+    }
+  }
+  ```
+- **Git Commit Conventions**: Use Conventional Commits format:
+  ```
+  feat(products): add product filtering functionality
+  fix(cart): resolve quantity update bug for BasketItemDTO
+  docs(readme): update installation instructions
+  refactor(models): reorganize interface definitions
+  ```
+- **Code Review Checklist**:
+  - Accessibility compliance (WCAG 2.2 AA)
+  - TypeScript strict mode compliance with proper interface usage
+  - Proper error handling implementation using defined error interfaces
+  - Performance considerations (lazy loading, caching)
+  - Test coverage for new features with typed mocks
+
+## Best Practices
+
+- **Performance**:
+  - Leverage zoneless change detection with Signals for automatic reactivity.
+  - Use `computed()` signals for derived state with proper typing.
+  - Leverage TanStack Query's `staleTime` for caching with typed responses.
+  - Minimize NgRx SignalStore boilerplate; use only for complex state with proper interfaces.
+  - Implement virtual scrolling for large lists using `PaginatedResponse<T>`.
+- **Testing**:
+  - Write unit tests with Jest using typed mocks and interfaces.
+  - Test accessibility with tools like axe-core.
+  - Maintain minimum 80% code coverage.
+  - Use proper TypeScript types in all test scenarios.
+- **UI/UX**:
+  - Follow e-commerce conventions with proper data display using model interfaces.
+  - Ensure mobile responsiveness with Tailwind's breakpoints.
+  - Provide visual feedback with typed loading states and error messages.
+  - Implement skeleton loading for better perceived performance.
+- **Security**:
+  - Sanitize user inputs using proper validation with `ValidationErrorResponse`.
+  - Use `auth.interceptor.ts` for secure API calls with `UserResponse` token.
+  - Validate API responses using TypeScript interfaces and type guards.
+  - Implement Content Security Policy (CSP) headers.
+
+## TanStack Query Examples
+
+### Query Example with Proper Typing:
+
+```typescript
+// products.queries.ts
+import { inject } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import {
+  injectQuery,
+   QueryClient,
+} from "@tanstack/angular-query-experimental";
+import { lastValueFrom } from "rxjs";
+import {
+  ProductResponse,
+  ProductQueryParameters,
+  PaginatedResponse,
+} from "@core/models";
+
+@Injectable()
+export class ProductsService {
+  private http = inject(HttpClient);
+  private queryClient = inject(QueryClient);
+
+  getProducts = (params: ProductQueryParameters) =>
+    injectQuery(() => ({
+      queryKey: ["products", params],
+      queryFn: () =>
+        lastValueFrom(
+          this.http.get<PaginatedResponse<ProductResponse>>("/api/products", {
+            params: params as any,
+          })
+        ),
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+    }));
+
+  getProduct = (id: number) =>
+    injectQuery(() => ({
+      queryKey: ["product", id],
+      queryFn: () =>
+        lastValueFrom(this.http.get<ProductResponse>(`/api/products/${id}`)),
+      staleTime: 5 * 60 * 1000,
+      retry: 1,
+    }));
+}
+```
+
+### Mutation Example with Proper Typing:
+
+```typescript
+// cart.queries.ts
+import { inject } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import {
+  injectMutation,
+  QueryClient,
+} from "@tanstack/angular-query-experimental";
+import { lastValueFrom } from "rxjs";
+import { BasketDTO, BasketItemDTO, ErrorDetails } from "@core/models";
+
+@Injectable()
+export class CartService {
+  private http = inject(HttpClient);
+  private queryClient = inject(QueryClient);
+
+  updateBasket = injectMutation(() => ({
+    mutationFn: (basket: BasketDTO) =>
+      lastValueFrom(this.http.post<BasketDTO>("/api/baskets", basket)),
+    onSuccess: (updatedBasket: BasketDTO) => {
+      this.queryClient.setQueryData(
+        ["basket", updatedBasket.id],
+        updatedBasket
+      );
+    },
+    onError: (error: ErrorDetails) => {
+      console.error("Failed to update basket:", error.errorMessage);
+      // Handle error with toast notification
+    },
+    retry: 3,
+  }));
+
+  getBasket = (id: string) =>
+    injectQuery(() => ({
+      queryKey: ["basket", id],
+      queryFn: () =>
+        lastValueFrom(this.http.get<BasketDTO>(`/api/baskets/${id}`)),
+      staleTime: 1 * 60 * 1000, // 1 minute for cart data
+      retry: 1,
+    }));
+}
+```
+
+### Template Usage with Proper Typing:
+
+```html
+<!-- products.component.html -->
+@if (productsQuery.isPending()) {
+<div class="flex justify-center items-center h-64">
+  <div
+    class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"
+  ></div>
+</div>
+} @else if (productsQuery.error()) {
+<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+  <strong>Error:</strong> {{ (productsQuery.error() as
+  ErrorDetails).errorMessage }}
+</div>
+} @else {
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  @for (product of productsQuery.data()?.data; track product.id) {
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <img
+      [src]="product.pictureUrl"
+      [alt]="product.name"
+      class="w-full h-48 object-cover"
+    />
+    <div class="p-4">
+      <h3 class="text-lg font-semibold text-gray-900">{{ product.name }}</h3>
+      <p class="text-gray-600 text-sm mt-1">{{ product.productBrand }}</p>
+      <p class="text-gray-800 text-sm mt-2">{{ product.description }}</p>
+      <div class="flex justify-between items-center mt-4">
+        <span class="text-xl font-bold text-blue-600"
+          >{{ product.price | currency }}</span
+        >
+        <p-button
+          (click)="addToCart(product)"
+          [disabled]="addToCartMutation.isPending()"
+          [label]="addToCartMutation.isPending() ? 'Adding...' : 'Add to Cart'"
+          styleClass="p-button-sm"
+        >
+        </p-button>
+      </div>
+    </div>
+  </div>
+  }
+</div>
+}
+```
+
+## IDE Guidance
+
+- **Code Generation**:
+  - Generate components in `features/{feature}/components/` with `standalone: true` and proper imports.
+  - Create TanStack Query files in `queries/` with proper typing using model interfaces.
+  - Generate NgRx SignalStore files in `store/` with typed state using defined interfaces.
+  - Always import and use the correct model interfaces from `@core/models`.
+- **Refactoring**:
+  - Ensure proper typing throughout the application using defined interfaces.
+  - Use type guards for runtime type checking when necessary.
+  - Refactor repetitive UI code into `shared/components/` with proper typing.
+  - Extract common utilities into `shared/utils/` with typed parameters.
+- **Debugging**:
+  - Use NgRx DevTools for SignalStore debugging with typed state.
+  - Check TanStack Query cache with proper type assertions.
+  - Validate API responses match defined interfaces.
+  - Use Angular DevTools for performance profiling.
+
+## Future Expansion
+
+- **API Expansion**: Add new `features/` folders with proper interface definitions in `@core/models`.
+- **NgRx SignalStore**: Extend for new client-side state with proper typing.
+- **TanStack Query**: Add new queries/mutations with proper interface usage.
+- **Model Evolution**: Update interfaces as API evolves, maintaining backward compatibility.
+- **Internationalization**: Implement Angular i18n for multi-language support.
+- **Progressive Web App**: Add service worker for offline functionality and push notifications.
+
+## Development Workflow
+
+- **Branch Strategy**: Use GitFlow with feature branches for new development.
+- **Pre-commit Hooks**: Run ESLint, Prettier, TypeScript compiler, and tests before commits.
+- **CI/CD Pipeline**:
+  - Run tests and linting on pull requests
+  - Build and deploy to staging environment
+  - Automated accessibility testing with axe-core
+  - Type checking with strict TypeScript compilation
+- **Documentation**: Maintain up-to-date README with setup instructions and API documentation including model interfaces.

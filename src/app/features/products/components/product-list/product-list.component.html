@@ -1,0 +1,82 @@
+<div class="flex">
+  <!-- Desktop Filter Sidebar -->
+  <aside class="w-64 flex-shrink-0 hidden lg:block">
+    <app-product-filter-sidebar></app-product-filter-sidebar>
+  </aside>
+
+  <!-- Mobile Filter Drawer (was Sidebar) -->
+  <p-drawer [(visible)]="sidebarVisible">
+    <!-- FIX: Changed from p-sidebar to p-drawer -->
+    <app-product-filter-sidebar></app-product-filter-sidebar>
+  </p-drawer>
+
+  <!-- Main Product Grid Content -->
+  <main class="flex-grow p-4 sm:p-6 lg:p-8">
+    <!-- Header with mobile filter button -->
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Products</h1>
+        @if(productsData(); as products) {
+        <p class="text-gray-600">
+          Showing {{ products.data.length }} of {{ products.count }} results
+        </p>
+        }
+      </div>
+      <p-button
+        icon="pi pi-filter"
+        label="Filters"
+        (click)="sidebarVisible.set(true)"
+        class="lg:hidden"
+        [outlined]="true"
+      ></p-button>
+    </div>
+
+    <!-- Content States: Loading, Error, Empty, Grid -->
+    @if (isProductsLoading()) {
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6"
+    >
+      @for (item of skeletonItems(); track $index) {
+      <p-skeleton height="28rem" styleClass="rounded-lg" />
+      }
+    </div>
+    } @else if (productsError()) {
+    <div class="text-center py-20 bg-white rounded-2xl shadow-soft">
+      <i class="pi pi-exclamation-triangle text-7xl text-red-400 mb-6"></i>
+      <h2 class="text-3xl font-bold text-gray-800 mb-2">
+        Failed to Load Products
+      </h2>
+      <p-button label="Retry" icon="pi pi-refresh" (onClick)="retryFetch()" />
+    </div>
+    } @else if (!productsData()?.data?.length) {
+    <div class="text-center py-20 bg-white rounded-2xl shadow-soft">
+      <i class="pi pi-inbox text-7xl text-gray-400 mb-6"></i>
+      <h2 class="text-3xl font-bold text-gray-800 mb-2">No Products Found</h2>
+      <p class="text-gray-600 mb-8">Try adjusting your filters.</p>
+    </div>
+    } @else {
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6"
+    >
+      @for (product of productsData()!.data; track product.id) {
+      <app-product-card
+        [product]="product"
+        (addToCartClicked)="cartDataService.addItem($event)"
+      />
+      }
+    </div>
+
+    @if (productsData()!.count > productsData()!.pageSize) {
+    <p-paginator
+      (onPageChange)="onPageChange($event)"
+      [first]="
+        (filterStore.filters().pageIndex - 1) * filterStore.filters().pageSize
+      "
+      [rows]="filterStore.filters().pageSize"
+      [totalRecords]="productsData()!.count"
+      [rowsPerPageOptions]="[12, 24, 36]"
+      styleClass="mt-8 bg-transparent"
+    />
+    } }
+  </main>
+</div>

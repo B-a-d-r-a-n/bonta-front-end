@@ -1,0 +1,54 @@
+// Payment Component Styles
+.payment {
+  &__header {
+    color: #1f2937;
+    font-weight: 700;
+  }
+  
+  &__form {
+    .form-input {
+      transition: border-color 0.2s ease;
+      
+      &:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+    }
+  }
+  
+  &__radio {
+    &:checked {
+      accent-color: #3b82f6;
+    }
+  }
+  
+  &__checkbox {
+    &:checked {
+      accent-color: #3b82f6;
+    }
+  }
+  
+  &__button {
+    transition: all 0.2s ease;
+    
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+  
+  &__summary {
+    .item {
+      transition: background-color 0.2s ease;
+      
+      &:hover {
+        background-color: #f9fafb;
+      }
+    }
+  }
+  
+  &__security {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 1px solid #93c5fd;
+  }
+} 

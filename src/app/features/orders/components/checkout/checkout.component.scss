@@ -1,0 +1,42 @@
+:host {
+  display: block;
+}
+
+.form-field {
+  @apply flex flex-col gap-2;
+
+  label {
+    @apply font-semibold text-sm text-gray-700;
+  }
+
+  input[pInputText] {
+    @apply w-full;
+  }
+}
+
+// Style p-steps to be more modern
+::ng-deep {
+  .p-steps {
+    .p-steps-item {
+      .p-menuitem-link {
+        @apply bg-transparent;
+
+        .p-steps-number {
+          @apply bg-gray-200 text-gray-700 border-2 border-gray-200 transition-all;
+        }
+        .p-steps-title {
+          @apply text-gray-500 transition-all;
+        }
+      }
+
+      &.p-steps-current .p-menuitem-link {
+        .p-steps-number {
+          @apply bg-primary-500 text-white border-primary-500;
+        }
+        .p-steps-title {
+          @apply text-primary-600 font-semibold;
+        }
+      }
+    }
+  }
+}

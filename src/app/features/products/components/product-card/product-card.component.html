@@ -1,0 +1,44 @@
+<p-card styleClass="product-card group">
+  <ng-template pTemplate="header">
+    <div
+      class="relative overflow-hidden rounded-t-lg cursor-pointer"
+      (click)="viewDetails()"
+    >
+      <img
+        [src]="product.pictureUrl"
+        [alt]="product.name"
+        class="w-full h-56 object-cover transition-transform duration-300 ease-in-out group-hover:scale-110"
+        (error)="onImageError()"
+      />
+      <p-tag
+        [value]="product.productBrand"
+        severity="info"
+        styleClass="absolute top-2 left-2 !bg-opacity-80 backdrop-blur-sm"
+      ></p-tag>
+    </div>
+  </ng-template>
+
+  <h3
+    class="text-lg font-semibold text-gray-800 truncate cursor-pointer hover:text-primary-600"
+    [title]="product.name"
+    (click)="viewDetails()"
+  >
+    {{ product.name }}
+  </h3>
+
+  <p class="text-sm text-gray-500 mb-4">{{ product.productType }}</p>
+
+  <div class="mt-auto flex items-center justify-between">
+    <span class="text-2xl font-bold text-gray-900">{{
+      product.price | currency
+    }}</span>
+    <p-button
+      icon="pi pi-cart-plus"
+      [rounded]="true"
+      pTooltip="Add to Cart"
+      tooltipPosition="top"
+      [loading]="isAddingToCart()"
+      (click)="addToCart()"
+    ></p-button>
+  </div>
+</p-card>

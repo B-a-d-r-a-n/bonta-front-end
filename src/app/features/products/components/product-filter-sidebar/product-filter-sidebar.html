@@ -1,0 +1,87 @@
+<div
+  class="flex flex-col h-full p-4 bg-white border-r border-gray-200 lg:bg-transparent lg:border-none"
+>
+  <h2 class="text-xl font-bold mb-6 text-gray-800">Filters</h2>
+
+  <div class="flex flex-col gap-6 flex-grow">
+    <!-- Search Filter -->
+    <div class="flex flex-col gap-2">
+      <label for="search-filter" class="font-semibold text-gray-700"
+        >Search</label
+      >
+      <p-iconField iconPosition="left">
+        <p-inputIcon class="pi pi-search"></p-inputIcon>
+        <input
+          pInputText
+          id="search-filter"
+          [value]="filterStore.filters().search || ''"
+          (input)="onSearchChange($event)"
+          placeholder="Search by name..."
+          class="w-full"
+        />
+      </p-iconField>
+    </div>
+
+    <!-- Brand Filter -->
+    <div class="flex flex-col gap-2">
+      <label for="brand-filter" class="font-semibold text-gray-700"
+        >Brand</label
+      >
+      <p-autoComplete
+        [(ngModel)]="selectedBrand"
+        [suggestions]="brandSuggestions"
+        (completeMethod)="filterBrands($event)"
+        (onSelect)="onBrandSelect($event)"
+        (onClear)="onBrandClear()"
+        [dropdown]="true"
+        optionLabel="name"
+        placeholder="All Brands"
+        styleClass="w-full"
+      />
+    </div>
+
+    <!-- Type Filter -->
+    <div class="flex flex-col gap-2">
+      <label for="type-filter" class="font-semibold text-gray-700">Type</label>
+      <p-autoComplete
+        [(ngModel)]="selectedType"
+        [suggestions]="typeSuggestions"
+        (completeMethod)="filterTypes($event)"
+        (onSelect)="onTypeSelect($event)"
+        (onClear)="onTypeClear()"
+        [dropdown]="true"
+        optionLabel="name"
+        placeholder="All Types"
+        styleClass="w-full"
+      />
+    </div>
+
+    <!-- Sort Filter -->
+    <div class="flex flex-col gap-2">
+      <label for="sort-filter" class="font-semibold text-gray-700"
+        >Sort By</label
+      >
+      <p-autoComplete
+        [(ngModel)]="selectedSort"
+        [suggestions]="sortSuggestions"
+        (completeMethod)="filterSorts($event)"
+        (onSelect)="onSortSelect($event)"
+        [dropdown]="true"
+        optionLabel="label"
+        placeholder="Default"
+        styleClass="w-full"
+      />
+    </div>
+  </div>
+
+  <p-divider class="mt-6"></p-divider>
+
+  <div class="mt-auto">
+    <p-button
+      label="Clear All Filters"
+      (click)="clearFilters()"
+      [text]="true"
+      styleClass="w-full text-red-500"
+    ></p-button>
+  </div>
+</div>

@@ -1,0 +1,22 @@
+/* App-level styles */
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f8fafc; /* gray-50 */
+}
+
+/* Ensure proper layout with navbar and footer */
+app-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1020; /* Higher than most elements */
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+app-footer {
+  margin-top: auto;
+}

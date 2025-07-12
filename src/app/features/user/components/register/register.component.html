@@ -1,0 +1,259 @@
+<div class="flex items-center justify-center min-h-screen bg-gray-50 p-4">
+  <p-card
+    header="Create Account"
+    subheader="Join us and start shopping today"
+    styleClass="w-full max-w-lg shadow-2xl"
+  >
+    @if (registerMutation.error()) {
+    <p-message severity="error" size="small" variant="simple" class="mb-4">
+      Registration failed: {{ registerMutation.error()?.errorMessage }}
+    </p-message>
+    }
+
+    <form
+      [formGroup]="registerForm"
+      (ngSubmit)="onSubmit()"
+      class="flex flex-col gap-6"
+    >
+      <!-- Display Name Field -->
+      <div class="flex flex-col gap-1">
+        <label for="displayName" class="font-semibold text-gray-700"
+          >Full Name</label
+        >
+        <input
+          pInputText
+          id="displayName"
+          type="text"
+          placeholder="Enter your full name"
+          formControlName="displayName"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          [class.border-red-500]="isInvalid('displayName')"
+          aria-label="Full name"
+          aria-describedby="displayName-error"
+          tabindex="0"
+        />
+        @if (isInvalid('displayName')) {
+        <p-message
+          id="displayName-error"
+          severity="error"
+          size="small"
+          variant="simple"
+          class="mt-1"
+        >
+          @if (registerForm.get('displayName')?.errors?.['required']) { Full
+          name is required. } @if
+          (registerForm.get('displayName')?.errors?.['minlength']) { Full name
+          must be at least 2 characters. }
+        </p-message>
+        }
+      </div>
+
+      <!-- Username Field -->
+      <div class="flex flex-col gap-1">
+        <label for="userName" class="font-semibold text-gray-700"
+          >Username</label
+        >
+        <input
+          pInputText
+          id="userName"
+          type="text"
+          placeholder="Enter your username"
+          formControlName="userName"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          [class.border-red-500]="isInvalid('userName')"
+          aria-label="Username"
+          aria-describedby="userName-error"
+          tabindex="0"
+        />
+        @if (isInvalid('userName')) {
+        <p-message
+          id="userName-error"
+          severity="error"
+          size="small"
+          variant="simple"
+          class="mt-1"
+        >
+          @if (registerForm.get('userName')?.errors?.['required']) { Username is
+          required. } @if (registerForm.get('userName')?.errors?.['minlength'])
+          { Username must be at least 3 characters. }
+        </p-message>
+        }
+      </div>
+
+      <!-- Email Field -->
+      <div class="flex flex-col gap-1">
+        <label for="email" class="font-semibold text-gray-700">Email</label>
+        <div class="relative">
+          <input
+            pInputText
+            id="email"
+            type="email"
+            placeholder="Enter your email"
+            formControlName="email"
+            (blur)="checkEmailAvailability()"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            [class.border-red-500]="isInvalid('email')"
+            aria-label="Email address"
+            aria-describedby="email-error email-status"
+            tabindex="0"
+          />
+          @if (emailChecked() && !checkEmailMutation.isPending()) {
+          <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+            @if (checkEmailMutation.error()) {
+            <i
+              class="pi pi-times-circle text-red-500 text-lg"
+              aria-label="Email already exists"
+            ></i>
+            } @else {
+            <i
+              class="pi pi-check-circle text-green-500 text-lg"
+              aria-label="Email available"
+            ></i>
+            }
+          </div>
+          }
+        </div>
+        @if (isInvalid('email')) {
+        <p-message
+          id="email-error"
+          severity="error"
+          size="small"
+          variant="simple"
+          class="mt-1"
+        >
+          @if (registerForm.get('email')?.errors?.['required']) { Email is
+          required. } @if (registerForm.get('email')?.errors?.['email']) {
+          Please enter a valid email address. }
+        </p-message>
+        } @if (emailChecked() && !checkEmailMutation.isPending()) {
+        <p-message
+          id="email-status"
+          [severity]="checkEmailMutation.error() ? 'error' : 'success'"
+          size="small"
+          variant="simple"
+          class="mt-1"
+        >
+          @if (checkEmailMutation.error()) { Email already exists. } @else {
+          Email available. }
+        </p-message>
+        }
+      </div>
+
+      <!-- Phone Number Field -->
+      <div class="flex flex-col gap-1">
+        <label for="phoneNumber" class="font-semibold text-gray-700"
+          >Phone Number (Optional)</label
+        >
+        <input
+          pInputText
+          id="phoneNumber"
+          type="tel"
+          placeholder="Enter your phone number"
+          formControlName="phoneNumber"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          aria-label="Phone number"
+          tabindex="0"
+        />
+      </div>
+
+      <!-- Password Field -->
+      <div class="flex flex-col gap-1">
+        <label for="password" class="font-semibold text-gray-700"
+          >Password</label
+        >
+        <p-password
+          id="password"
+          placeholder="Enter your password"
+          formControlName="password"
+          [toggleMask]="true"
+          [feedback]="true"
+          class="w-full"
+          aria-label="Password"
+          aria-describedby="password-error"
+          tabindex="0"
+        />
+        @if (isInvalid('password')) {
+        <p-message
+          id="password-error"
+          severity="error"
+          size="small"
+          variant="simple"
+          class="mt-1"
+        >
+          @if (registerForm.get('password')?.errors?.['required']) { Password is
+          required. } @if (registerForm.get('password')?.errors?.['minlength'])
+          { Password must be at least 6 characters. }
+        </p-message>
+        }
+      </div>
+
+      <!-- Confirm Password Field -->
+      <div class="flex flex-col gap-1">
+        <label for="confirmPassword" class="font-semibold text-gray-700"
+          >Confirm Password</label
+        >
+        <p-password
+          id="confirmPassword"
+          placeholder="Confirm your password"
+          formControlName="confirmPassword"
+          [invalid]="isInvalid('confirmPassword')"
+          [toggleMask]="true"
+          [feedback]="false"
+          class="w-full"
+          aria-label="Confirm password"
+          aria-describedby="confirmPassword-error"
+          tabindex="0"
+        />
+        @if (isInvalid('confirmPassword')) {
+        <p-message
+          id="confirmPassword-error"
+          severity="error"
+          size="small"
+          variant="simple"
+          class="mt-1"
+        >
+          @if (registerForm.get('confirmPassword')?.errors?.['required']) {
+          Please confirm your password. } @if
+          (registerForm.get('confirmPassword')?.errors?.['passwordMismatch']) {
+          Passwords do not match. }
+        </p-message>
+        }
+      </div>
+
+      <!-- Submit Button -->
+      <p-button
+        type="submit"
+        [loading]="registerMutation.isPending()"
+        [disabled]="registerMutation.isPending() || registerForm.invalid"
+        [rounded]="true"
+        class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200"
+        aria-label="Create account"
+      >
+        <span pButtonLabel>
+          @if (registerMutation.isPending()) { Creating Account... } @else {
+          Create Account }
+        </span>
+      </p-button>
+    </form>
+
+    @if (registerMutation.isPending()) {
+    <div class="flex items-center justify-center mt-4">
+      <p-progress-spinner class="w-8 h-8" />
+      <span class="ml-2 text-gray-600">Creating your account...</span>
+    </div>
+    }
+
+    <ng-template pTemplate="footer">
+      <div class="text-center text-sm text-gray-600">
+        Already have an account?
+        <a
+          routerLink="/user/login"
+          class="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors duration-200"
+          aria-label="Navigate to login page"
+        >
+          Sign in here
+        </a>
+      </div>
+    </ng-template>
+  </p-card>
+</div>

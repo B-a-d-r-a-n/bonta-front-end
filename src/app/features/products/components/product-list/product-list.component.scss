@@ -1,0 +1,107 @@
+:host {
+  display: block;
+}
+
+.product-card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.product-image {
+  border-radius: 8px 8px 0 0;
+  transition: opacity 0.2s ease-in-out;
+  
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.product-description {
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.product-price {
+  color: #059669; // green-600
+  font-weight: 700;
+}
+
+.add-to-cart-btn {
+  transition: all 0.2s ease-in-out;
+  
+  &:not(:disabled):hover {
+    transform: scale(1.02);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.pagination-container {
+  margin-top: 2rem;
+  padding: 1rem 0;
+}
+
+.pagination-btn {
+  transition: all 0.2s ease-in-out;
+  
+  &:not(:disabled):hover {
+    transform: scale(1.05);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.pagination-info {
+  font-weight: 500;
+  color: #374151; // gray-700
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .grid {
+    gap: 1rem;
+  }
+  
+  .product-card {
+    margin-bottom: 1rem;
+  }
+  
+  .pagination-container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+// Loading and error states
+.flex.justify-center.items-center.h-64 {
+  min-height: 16rem;
+  
+  p-progress-spinner {
+    ::ng-deep .p-progress-spinner {
+      width: 3rem;
+      height: 3rem;
+    }
+  }
+}
+
+// Message styling
+p-message {
+  ::ng-deep .p-message {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+} 
