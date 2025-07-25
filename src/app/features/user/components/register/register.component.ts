@@ -1,23 +1,28 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
-  ReactiveFormsModule,
+  AbstractControl,
   FormBuilder,
-  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
   Validators,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+
+// PrimeNG Modules
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { injectMutation } from '@tanstack/angular-query-experimental';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 
-import { UserQueries } from '../../queries/user.queries';
-import { RegisterRequest, UserResponse } from '@core/models';
+// Core Services & Models
 import { AuthService } from '@core/services/auth.service';
+import { RegisterRequest } from '@core/models';
+import { ToastService } from '@core/services/toast.service';
 
 @Component({
   selector: 'app-register',
@@ -32,72 +37,76 @@ import { AuthService } from '@core/services/auth.service';
     PasswordModule,
     MessageModule,
     ProgressSpinnerModule,
+    IconFieldModule,
+    InputIconModule,
   ],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss'],
 })
 export class RegisterComponent {
-  private userQueries = inject(UserQueries);
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private toastService = inject(ToastService);
 
-  registerForm: FormGroup = this.fb.group(
+  isLoading = signal(false);
+  errorMessage = signal<string | null>(null);
+
+  registerForm = this.fb.group(
     {
       displayName: ['', [Validators.required, Validators.minLength(2)]],
       userName: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]],
-      phoneNumber: [''],
     },
     { validators: this.passwordMatchValidator }
   );
 
-  registerMutation = injectMutation(() => this.userQueries.register());
-  checkEmailMutation = injectMutation(() => this.userQueries.checkEmail());
-
-  emailChecked = signal(false);
+  // Custom validator
+  passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    const password = control.get('password')?.value;
+    const confirmPassword = control.get('confirmPassword')?.value;
+    return password === confirmPassword ? null : { passwordMismatch: true };
+  }
 
   isInvalid(controlName: string): boolean {
     const control = this.registerForm.get(controlName);
-    return control
-      ? control.invalid && (control.touched || control.dirty)
-      : false;
+    return !!control && control.invalid && (control.touched || control.dirty);
   }
 
-  passwordMatchValidator(form: FormGroup) {
-    const password = form.get('password');
-    const confirmPassword = form.get('confirmPassword');
-    return password &&
-      confirmPassword &&
-      password.value === confirmPassword.value
-      ? null
-      : { passwordMismatch: true };
-  }
-
-  checkEmailAvailability(): void {
-    const emailControl = this.registerForm.get('email');
-    if (emailControl?.valid && emailControl.value) {
-      this.emailChecked.set(true);
-      this.checkEmailMutation.mutate(emailControl.value);
-    }
-  }
-
-  onSubmit(): void {
-    if (this.registerForm.valid) {
-      const request: RegisterRequest = this.registerForm.value;
-      this.registerMutation.mutate(request, {
-        onSuccess: (user: UserResponse) => {
-          this.authService.setAuthState(user);
-          this.router.navigate(['/']);
-        },
-        onError: (error: any) => {
-          console.error('Registration failed:', error);
-        },
-      });
-    } else {
+  async onSubmit(): Promise<void> {
+    if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+
+    try {
+      const formValue = this.registerForm.value;
+      const request: RegisterRequest = {
+        displayName: formValue.displayName!,
+        userName: formValue.userName!,
+        email: formValue.email!,
+        password: formValue.password!,
+      };
+
+      await this.authService.register(request);
+
+      this.toastService.showSuccess(
+        'Registration Successful',
+        'Welcome! Please log in.'
+      );
+      this.router.navigate(['/user/login']);
+    } catch (error: any) {
+      const apiErrorMessage =
+        error?.error?.errorMessage || 'Registration failed. Please try again.';
+      this.errorMessage.set(apiErrorMessage);
+      this.toastService.showError('Registration Failed', apiErrorMessage);
+    } finally {
+      this.isLoading.set(false);
     }
   }
 }

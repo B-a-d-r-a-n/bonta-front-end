@@ -15,7 +15,6 @@ export class CartQueries {
 
   private static readonly BASKET_KEY = ['basket'];
 
-  // Defines the shape of the query to get a basket by its ID.
   getBasketById(id: string | null) {
     return {
       queryKey: ['basket', id],
@@ -23,36 +22,29 @@ export class CartQueries {
     };
   }
 
-  // Defines the shape of the mutation to update a basket.
   updateBasket() {
     return {
       mutationFn: (basket: BasketDTO) => this.updateBasketApi(basket),
       onSuccess: (updatedBasket: BasketDTO) => {
         this.queryClient.setQueryData(
-          [...CartQueries.BASKET_KEY, updatedBasket.id],
+          ['basket', updatedBasket.id],
           updatedBasket
         );
       },
       onError: (error: ErrorDetails) => {
-        console.error('Failed to update basket:', error.errorMessage);
+        console.error('Failed to update basket:', error?.errorMessage || error);
       },
     };
   }
 
-  // Defines the shape of the mutation to delete a basket.
   deleteBasket() {
     return {
       mutationFn: (id: string) => this.deleteBasketApi(id),
       onSuccess: (id: string) => {
-        this.queryClient.setQueryData([...CartQueries.BASKET_KEY, id], null);
-      },
-      onError: (error: ErrorDetails) => {
-        console.error('Failed to delete basket:', error.errorMessage);
+        this.queryClient.setQueryData(['basket', id], null);
       },
     };
   }
-
-  // --- Public API Methods (for direct calls from the store) ---
 
   public fetchBasket(id: string): Promise<BasketDTO | null> {
     if (!id) {

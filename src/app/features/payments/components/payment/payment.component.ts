@@ -1,27 +1,31 @@
-import { Component, inject, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { CardModule } from 'primeng/card';
+import {
+  Component,
+  inject,
+  signal,
+  computed,
+  ViewChild,
+  ElementRef,
+  afterNextRender,
+} from '@angular/core';
+import { CommonModule, CurrencyPipe } from '@angular/common';
+import { Router } from '@angular/router';
+import {
+  injectMutation,
+  QueryClient,
+} from '@tanstack/angular-query-experimental';
+
+// PrimeNG
 import { ButtonModule } from 'primeng/button';
-import { DividerModule } from 'primeng/divider';
-import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
+import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { RadioButtonModule } from 'primeng/radiobutton';
-import { InputTextModule } from 'primeng/inputtext';
-import { CheckboxModule } from 'primeng/checkbox';
-import { MessageService } from 'primeng/api';
-import { BasketDTO } from '@core/models';
-import {
-  injectQuery,
-  injectMutation,
-} from '@tanstack/angular-query-experimental';
-import { lastValueFrom } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { ToastService } from '@core/services/toast.service';
+
+// Stripe
+import { Stripe, StripeCardNumberElement, loadStripe } from '@stripe/stripe-js';
 import { environment } from '../../../../../environments/environment';
-import { API_ENDPOINTS } from '@core/constants/api-endpoints';
+import { OrderQueries } from '@features/orders/queries/order.queries';
+import { OrderRequest } from '@core/models';
 import { StorageUtils } from '@shared/utils/storage.utils';
 import { STORAGE_KEYS } from '@core/constants/storage-keys';
 
@@ -30,109 +34,103 @@ import { STORAGE_KEYS } from '@core/constants/storage-keys';
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
+    CurrencyPipe,
     CardModule,
     ButtonModule,
-    DividerModule,
-    TagModule,
-    ToastModule,
     MessageModule,
     ProgressSpinnerModule,
-    RadioButtonModule,
-    InputTextModule,
-    CheckboxModule,
   ],
-  providers: [MessageService],
   templateUrl: './payment.component.html',
   styleUrls: ['./payment.component.scss'],
 })
 export class PaymentComponent {
-  private http = inject(HttpClient);
   private router = inject(Router);
-  private route = inject(ActivatedRoute);
-  private messageService = inject(MessageService);
+  private orderQueries = inject(OrderQueries);
+  private toastService = inject(ToastService);
+  private queryClient = inject(QueryClient);
 
-  // Form signals
-  selectedPaymentMethod = signal('card');
-  cardNumber = signal('');
-  expiryDate = signal('');
-  cvv = signal('');
-  billingAddress = signal('');
-  acceptedTerms = signal(false);
+  // Get data passed from checkout component
+  private navigationState = this.router.getCurrentNavigation()?.extras.state;
+  orderRequest: OrderRequest | null = this.navigationState?.['orderRequest'];
+  clientSecret: string | null = this.navigationState?.['clientSecret'];
+  totalAmount: number | null = this.navigationState?.['total']; // Receive the total amount
 
-  // Basket query
-  basketId = signal(
-    StorageUtils.getLocalItem<string>(STORAGE_KEYS.BASKET_ID) || ''
-  );
+  // Stripe.js state
+  stripe: Stripe | null = null;
+  cardElement: StripeCardNumberElement | null = null;
+  @ViewChild('cardElement') cardElementRef?: ElementRef;
 
-  basketQuery = injectQuery(() => ({
-    queryKey: ['basket', this.basketId()],
-    queryFn: () =>
-      lastValueFrom(
-        this.http.get<BasketDTO>(
-          `${environment.apiUrl}${API_ENDPOINTS.BASKETS.GET}/${this.basketId()}`
-        )
-      ),
-    enabled: !!this.basketId(),
-    staleTime: 1 * 60 * 1000, // 1 minute
-    retry: 1,
-  }));
+  // UI state signals
+  isLoading = signal(true);
+  isProcessing = signal(false);
+  cardError = signal<string | null>(null);
 
-  paymentMutation = injectMutation(() => ({
-    mutationFn: (basketId: string) =>
-      lastValueFrom(
-        this.http.post<BasketDTO>(
-          `${environment.apiUrl}${API_ENDPOINTS.PAYMENTS.CREATE_PAYMENT_INTENT}/${basketId}`,
-          {}
-        )
-      ),
-    onSuccess: (basket: BasketDTO) => {
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Payment Successful',
-        detail: 'Your payment has been processed successfully.',
-      });
-      // Navigate to success page or order confirmation
-      this.router.navigate(['/orders/success']);
-    },
-    onError: (error: any) => {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Payment Failed',
-        detail: 'There was an error processing your payment. Please try again.',
-      });
-    },
-    retry: 3,
-  }));
+  createOrderMutation = injectMutation(() => this.orderQueries.createOrder());
 
-  // Computed signals for template usage
-  isBasketLoading = computed(() => this.basketQuery.isPending());
-  basketData = computed(() => this.basketQuery.data());
-  basketError = computed(() => this.basketQuery.error());
-  isPaymentPending = computed(() => this.paymentMutation.isPending());
-
-  getSubtotal(): number {
-    const basket = this.basketData();
-    if (!basket?.items) return 0;
-    return basket.items.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0
-    );
-  }
-
-  getTax(): number {
-    return this.getSubtotal() * 0.1; // 10% tax
-  }
-
-  getTotal(): number {
-    const basket = this.basketData();
-    const shipping = basket?.shippingPrice || 0;
-    return this.getSubtotal() + this.getTax() + shipping;
-  }
-
-  processPayment(): void {
-    if (this.acceptedTerms() && this.basketId()) {
-      this.paymentMutation.mutate(this.basketId());
+  constructor() {
+    if (!this.orderRequest || !this.clientSecret || this.totalAmount === null) {
+      // Add check for total
+      this.toastService.showError('Error', 'Invalid checkout state.');
+      this.router.navigate(['/cart']);
+      return;
     }
+
+    // Use afterNextRender for safe DOM access and to load Stripe
+    afterNextRender(async () => {
+      this.stripe = await loadStripe(environment.stripePublishableKey);
+      if (this.stripe && this.clientSecret) {
+        const elements = this.stripe.elements({
+          clientSecret: this.clientSecret,
+        });
+        this.cardElement = elements.create('cardNumber');
+        this.cardElement.mount(this.cardElementRef!.nativeElement);
+        // Also create and mount other elements
+        elements.create('cardExpiry').mount('#card-expiry-element');
+        elements.create('cardCvc').mount('#card-cvc-element');
+
+        this.cardElement.on('change', (event) => {
+          this.cardError.set(event.error ? event.error.message : null);
+        });
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  async processPayment() {
+    if (!this.stripe || !this.cardElement || !this.orderRequest) return;
+    this.isProcessing.set(true);
+    this.cardError.set(null);
+
+    // Step 1: Create the Order in our database (in 'Pending' state)
+    this.createOrderMutation.mutate(this.orderRequest, {
+      onSuccess: async (order) => {
+        // Step 2: With the order created, confirm the payment with Stripe
+        const result = await this.stripe!.confirmCardPayment(
+          this.clientSecret!
+        );
+
+        if (result.error) {
+          this.cardError.set(
+            result.error.message ?? 'An unknown payment error occurred.'
+          );
+          this.isProcessing.set(false);
+        } else {
+          if (result.paymentIntent?.status === 'succeeded') {
+            // Payment succeeded! The webhook will handle the backend update.
+            // Clear the cart and navigate to the success page.
+            this.queryClient.removeQueries({ queryKey: ['basket'] });
+            StorageUtils.removeLocalItem(STORAGE_KEYS.BASKET_ID);
+            this.router.navigate(['/orders/success', order.id]);
+          }
+        }
+      },
+      onError: (error: any) => {
+        this.toastService.showError(
+          'Error',
+          'Could not create order before payment.'
+        );
+        this.isProcessing.set(false);
+      },
+    });
   }
 }

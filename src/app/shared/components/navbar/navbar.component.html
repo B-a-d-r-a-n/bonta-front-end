@@ -1,120 +1,217 @@
 <nav
-  class="w-full bg-white/80 backdrop-blur-lg border-b border-gray-200 shadow-sm sticky top-0 z-[1020]"
+  class="w-full bg-white/90 backdrop-blur-lg border-b border-gray-200 shadow-sm sticky top-0 z-[1020] transition-all duration-300"
 >
-  <div
-    class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16"
-  >
-    <!-- Logo and Desktop Nav -->
-    <div class="flex items-center gap-8">
-      <a routerLink="/" class="flex items-center gap-2 flex-shrink-0">
-        <div
-          class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold text-lg"
+  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <!-- Logo and Main Navigation -->
+      <div class="flex items-center gap-4 lg:gap-8">
+        <!-- Logo -->
+        <a
+          routerLink="/"
+          class="flex items-center gap-3 flex-shrink-0 group"
+          aria-label="Boon Homepage"
         >
-          B
-        </div>
-        <span class="font-bold text-xl text-gray-900 hidden sm:block"
-          >Boon</span
-        >
-      </a>
-      <ul class="hidden lg:flex gap-6 text-sm font-medium text-gray-700">
-        <li>
-          <a
-            routerLink="/products"
-            routerLinkActive="text-primary-600"
-            [routerLinkActiveOptions]="{ exact: true }"
-            class="hover:text-primary-600 transition-colors"
-            >Shop All</a
+          <div
+            class="w-9 h-9 sm:hidden text-gray-800 bg-primary-600 rounded-xl flex items-center justify-center font-bold text-xl transform transition-all duration-300 group-hover:bg-primary-500 group-hover:scale-110 group-hover:rotate-[-12deg]"
           >
-        </li>
-      </ul>
-    </div>
+            Boon
+          </div>
+          <span
+            class="font-bold text-2xl text-gray-800 hidden sm:block tracking-tight"
+            >Boon</span
+          >
+        </a>
 
-    <!-- User Actions and Mobile Menu -->
-    <div class="flex items-center gap-2">
-      <p-button
-        icon="pi pi-shopping-cart"
-        [rounded]="true"
-        [text]="true"
-        severity="secondary"
-        routerLink="/cart"
-        pBadge
-        [value]="
-          cartService.itemCount() > 0 ? cartService.itemCount().toString() : ''
-        "
-      ></p-button>
+        <!-- Desktop Category Navigation -->
+        <ul
+          class="hidden lg:flex items-center gap-2 text-base font-medium text-gray-600"
+        >
+          <li>
+            <a
+              routerLink="/products"
+              routerLinkActive="text-primary-600"
+              [routerLinkActiveOptions]="{ exact: true }"
+              class="px-3 py-2 rounded-lg hover:text-primary-600 transition-colors"
+              >Shop All</a
+            >
+          </li>
+          @for(category of categories; track category.typeId) {
+          <li>
+            <a
+              [routerLink]="['/products']"
+              [queryParams]="{ typeId: category.typeId }"
+              routerLinkActive="text-primary-600"
+              class="px-3 py-2 rounded-lg hover:text-primary-600 transition-colors"
+              >{{ category.label }}</a
+            >
+          </li>
+          }
+        </ul>
+      </div>
 
-      @if(isAuthenticated()){
-      <p-button
-        icon="pi pi-user"
-        [label]="currentUser()?.displayName"
-        (onClick)="menu.toggle($event)"
-        [text]="true"
-        severity="secondary"
-      />
-      <p-tieredMenu #menu [model]="userMenuItems" [popup]="true"></p-tieredMenu>
-      } @else {
-      <p-button
-        label="Log In"
-        routerLink="/user/login"
-        styleClass="hidden sm:inline-flex"
-        size="small"
-      ></p-button>
-      <p-button
-        icon="pi pi-user"
-        [rounded]="true"
-        [text]="true"
-        severity="secondary"
-        routerLink="/user/login"
-        styleClass="sm:hidden"
-      ></p-button>
-      }
+      <!-- User Actions and Mobile Menu Trigger -->
+      <div class="flex items-center gap-1 sm:gap-2">
+        <!-- Cart Button -->
+        <p-button
+          icon="pi pi-shopping-cart"
+          [rounded]="true"
+          [text]="true"
+          styleClass="text-gray-700 hover:bg-gray-100"
+          routerLink="/cart"
+          pBadge
+          [value]="
+            authService.isAuthenticated() && cartService.itemCount() > 0
+              ? cartService.itemCount().toString()
+              : ''
+          "
+          severity="danger"
+          aria-label="View Shopping Cart"
+        ></p-button>
 
-      <p-button
-        icon="pi pi-bars"
-        [text]="true"
-        severity="secondary"
-        (click)="sidebarVisible.set(true)"
-        class="lg:hidden"
-      ></p-button>
+        <!-- Auth State: User Menu or Login Buttons -->
+        @if(authService.isAuthenticated()){
+        <p-button
+          (onClick)="menu.toggle($event)"
+          styleClass="text-gray-700 hover:bg-gray-100"
+          [text]="true"
+          [rounded]="true"
+          aria-label="User Account Menu"
+        >
+          <div class="flex items-center gap-2">
+            <i class="pi pi-user"></i>
+            <span class="font-medium hidden sm:inline">{{
+              authService.currentUser()?.displayName
+            }}</span>
+          </div>
+        </p-button>
+        <p-tieredMenu
+          #menu
+          [model]="userMenuItems"
+          [popup]="true"
+        ></p-tieredMenu>
+
+        } @else {
+        <p-button
+          label="Log In"
+          routerLink="/user/login"
+          styleClass="hidden sm:inline-flex"
+          size="small"
+        ></p-button>
+        <p-button
+          label="Sign Up"
+          routerLink="/user/register"
+          [outlined]="true"
+          styleClass="hidden md:inline-flex"
+          size="small"
+        ></p-button>
+        }
+
+        <!-- Mobile Menu Hamburger -->
+        <p-button
+          icon="pi pi-bars"
+          [text]="true"
+          class="lg:hidden"
+          styleClass="text-gray-700 hover:bg-gray-100 lg:hidden"
+          (click)="sidebarVisible.set(true)"
+          aria-label="Open Menu"
+        ></p-button>
+      </div>
     </div>
   </div>
 </nav>
 
-<!-- Mobile Sidebar -->
-<p-drawer [(visible)]="sidebarVisible" position="right">
+<!-- Mobile Sidebar (Drawer) -->
+<p-drawer
+  [(visible)]="sidebarVisible"
+  position="right"
+  styleClass="w-full max-w-xs"
+>
   <ng-template pTemplate="header">
-    <span class="font-bold text-xl">Menu</span>
+    <a
+      routerLink="/"
+      class="flex items-center gap-3 flex-shrink-0 group"
+      (click)="sidebarVisible.set(false)"
+    >
+      <div
+        class="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center text-white font-bold text-xl"
+      >
+        B
+      </div>
+      <span class="font-bold text-2xl text-gray-800 tracking-tight">Boon</span>
+    </a>
   </ng-template>
-  <ul class="flex flex-col gap-4 text-lg p-4">
+  <ul class="flex flex-col gap-2 p-4 text-lg">
+    @if(!authService.isAuthenticated()){
+    <li class="flex items-center gap-2">
+      <p-button
+        label="Log In"
+        routerLink="/user/login"
+        (onClick)="sidebarVisible.set(false)"
+        styleClass="flex-1"
+      />
+      <p-button
+        label="Sign Up"
+        routerLink="/user/register"
+        (onClick)="sidebarVisible.set(false)"
+        styleClass="flex-1"
+        [outlined]="true"
+      />
+    </li>
+    <hr class="my-4" />
+    }
     <li>
       <a
         routerLink="/products"
         (click)="sidebarVisible.set(false)"
-        class="p-2 block"
-        >Shop All</a
+        class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
       >
+        <i class="pi pi-shopping-bag w-6 text-center"></i>
+        <span>Shop All</span>
+      </a>
+    </li>
+    @for(category of categories; track category.typeId) {
+    <li>
+      <a
+        [routerLink]="['/products']"
+        [queryParams]="{ typeId: category.typeId }"
+        (click)="sidebarVisible.set(false)"
+        class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
+      >
+        <i [class]="category.icon" class="w-6 text-center"></i>
+        <span>{{ category.label }}</span>
+      </a>
+    </li>
+    }
+    <hr class="my-4" />
+    @if(authService.isAuthenticated()) {
+    <li>
+      <a
+        routerLink="/user/profile"
+        (click)="sidebarVisible.set(false)"
+        class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
+      >
+        <i class="pi pi-user w-6 text-center"></i>
+        <span>Profile</span>
+      </a>
     </li>
     <li>
       <a
         routerLink="/orders"
         (click)="sidebarVisible.set(false)"
-        class="p-2 block"
-        >My Orders</a
+        class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
       >
+        <i class="pi pi-book w-6 text-center"></i>
+        <span>My Orders</span>
+      </a>
     </li>
     <li>
       <a
-        routerLink="/user/profile"
-        (click)="sidebarVisible.set(false)"
-        class="p-2 block"
-        >Profile</a
+        (click)="authService.logout(); sidebarVisible.set(false)"
+        class="flex items-center gap-3 p-3 rounded-lg hover:bg-red-50 cursor-pointer text-red-600"
       >
-    </li>
-    @if(isAuthenticated()){
-    <li>
-      <a (click)="logout()" class="p-2 block cursor-pointer text-red-500"
-        >Logout</a
-      >
+        <i class="pi pi-sign-out w-6 text-center"></i>
+        <span>Logout</span>
+      </a>
     </li>
     }
   </ul>

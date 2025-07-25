@@ -10,7 +10,7 @@ import {
 import { STORAGE_KEYS } from '@core/constants/storage-keys';
 import { StorageUtils } from '@shared/utils/storage.utils';
 
-// The only state we need is the ID.
+// 1. Define the state shape
 type CartState = {
   basketId: string | null;
 };
@@ -19,21 +19,24 @@ const initialState: CartState = {
   basketId: null,
 };
 
+// 2. Create the store using the signalStore function
 export const CartStore = signalStore(
+  // Provide the store at the root level, making it a singleton
   { providedIn: 'root' },
+
+  // Add the state slice to the store
   withState(initialState),
-  withMethods((store) => ({
-    // Method to load the ID from storage at startup.
-    loadId() {
-      if (isPlatformBrowser(inject(PLATFORM_ID))) {
-        patchState(store, {
-          basketId: StorageUtils.getLocalItem<string>(STORAGE_KEYS.BASKET_ID),
-        });
+
+  // Add methods to interact with the store
+  withMethods((store, platformId = inject(PLATFORM_ID)) => ({
+    loadIdFromStorage() {
+      if (isPlatformBrowser(platformId)) {
+        const id = StorageUtils.getLocalItem<string>(STORAGE_KEYS.BASKET_ID);
+        patchState(store, { basketId: id });
       }
     },
-    // Method to update the ID when a new cart is created or cleared.
     setId(id: string | null) {
-      if (isPlatformBrowser(inject(PLATFORM_ID))) {
+      if (isPlatformBrowser(platformId)) {
         if (id) {
           StorageUtils.setLocalItem(STORAGE_KEYS.BASKET_ID, id);
         } else {
@@ -43,9 +46,11 @@ export const CartStore = signalStore(
       patchState(store, { basketId: id });
     },
   })),
+
+  // Add lifecycle hooks
   withHooks({
     onInit(store) {
-      store.loadId();
+      store.loadIdFromStorage();
     },
   })
 );

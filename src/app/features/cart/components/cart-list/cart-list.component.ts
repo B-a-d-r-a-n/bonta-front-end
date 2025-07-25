@@ -1,11 +1,4 @@
-import {
-  Component,
-  computed,
-  effect,
-  inject,
-  signal,
-  WritableSignal,
-} from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -20,15 +13,8 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService } from 'primeng/api';
 
 // Core & Shared Imports
-import {
-  injectQuery,
-  injectMutation,
-} from '@tanstack/angular-query-experimental';
-import { CartQueries } from '../../queries/cart.queries';
-import { BasketItemDTO, BasketDTO } from '@core/models';
-import { StorageUtils } from '@shared/utils/storage.utils';
-import { STORAGE_KEYS } from '@core/constants/storage-keys';
-import { ToastService } from '@core/services/toast.service';
+import { BasketItemDTO } from '@core/models';
+import { CartDataService } from '@features/cart/services/cart-data.service';
 
 @Component({
   selector: 'app-cart-list',
@@ -49,78 +35,19 @@ import { ToastService } from '@core/services/toast.service';
   styleUrls: ['./cart-list.component.scss'],
 })
 export class CartListComponent {
-  private cartQueries = inject(CartQueries);
+  // Inject the one service that holds all state and logic.
+  readonly cartService = inject(CartDataService);
   private confirmationService = inject(ConfirmationService);
-  private toastService = inject(ToastService);
 
-  // Use a writable signal for basketId to allow clearing it.
-  private basketId: WritableSignal<string | null> = signal(
-    StorageUtils.getLocalItem<string>(STORAGE_KEYS.BASKET_ID)
-  );
-
-  basketQuery = injectQuery(() => {
-    const id = this.basketId();
-    return {
-      ...this.cartQueries.getBasketById(id!),
-      enabled: id !== 'invalid-id',
-    };
-  });
-
-  updateBasketMutation = injectMutation(() => this.cartQueries.updateBasket());
-  deleteBasketMutation = injectMutation(() => this.cartQueries.deleteBasket());
-
-  localCartItems: WritableSignal<BasketItemDTO[]> = signal([]);
-
-  isCartDirty = computed(() => {
-    const serverItems = this.basketQuery.data()?.items ?? [];
-    const localItems = this.localCartItems();
-    if (serverItems.length !== localItems.length) return true;
-    return JSON.stringify(serverItems) !== JSON.stringify(localItems);
-  });
-
-  constructor() {
-    effect(() => {
-      const serverItems = this.basketQuery.data()?.items;
-      if (serverItems) {
-        this.localCartItems.set(JSON.parse(JSON.stringify(serverItems)));
-      } else {
-        this.localCartItems.set([]);
-      }
-    });
-  }
+  // This component is now extremely simple. All logic lives in the service.
 
   onQuantityChange(itemId: number, newQuantity: number | null): void {
-    const quantity = newQuantity ?? 1;
-    this.localCartItems.update((items) =>
+    // When the UI changes, we update the local "draft" state in the service.
+    this.cartService.items.update((items) =>
       items.map((item) =>
-        item.id === itemId ? { ...item, quantity: quantity } : item
+        item.id === itemId ? { ...item, quantity: newQuantity ?? 1 } : item
       )
     );
-  }
-
-  updateCart(): void {
-    const currentBasket = this.basketQuery.data();
-    if (currentBasket) {
-      const updatedBasket: BasketDTO = {
-        ...currentBasket,
-        items: this.localCartItems(),
-      };
-      this.updateBasketMutation.mutate(updatedBasket, {
-        onSuccess: (result) => {
-          this.toastService.showSuccess(
-            'Success',
-            'Cart updated successfully.'
-          );
-          // THIS IS THE NEW LOGIC
-          if (!result.items || result.items.length === 0) {
-            this.handleEmptyCart();
-          }
-        },
-        onError: () => {
-          this.toastService.showError('Error', 'Failed to update cart.');
-        },
-      });
-    }
   }
 
   removeItem(itemToRemove: BasketItemDTO): void {
@@ -129,58 +56,18 @@ export class CartListComponent {
       header: 'Confirm Removal',
       icon: 'pi pi-info-circle',
       accept: () => {
-        const currentBasket = this.basketQuery.data();
+        const currentBasket = this.cartService.basketQuery.data();
         if (currentBasket) {
-          const updatedBasket: BasketDTO = {
+          const updatedItems = this.cartService
+            .items()
+            .filter((i) => i.id !== itemToRemove.id);
+          // Call the mutation with the new item list.
+          this.cartService.updateBasketMutation.mutate({
             ...currentBasket,
-            items: currentBasket.items.filter((i) => i.id !== itemToRemove.id),
-          };
-          this.updateBasketMutation.mutate(updatedBasket, {
-            onSuccess: (result) => {
-              if (!result.items || result.items.length === 0) {
-                this.handleEmptyCart();
-              }
-            },
+            items: updatedItems,
           });
         }
       },
     });
   }
-
-  clearCart(): void {
-    this.confirmationService.confirm({
-      message: 'Are you sure you want to empty your entire cart?',
-      header: 'Confirm Clear Cart',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-        const id = this.basketId();
-        if (id) {
-          this.deleteBasketMutation.mutate(id, {
-            onSuccess: () => {
-              // THIS IS THE NEW LOGIC
-              this.handleEmptyCart();
-            },
-          });
-        }
-      },
-    });
-  }
-
-  private handleEmptyCart(): void {
-    StorageUtils.removeLocalItem(STORAGE_KEYS.BASKET_ID);
-    // Set the signal to our known invalid state.
-    this.basketId.set('invalid-id');
-  }
-
-  getSubtotal = computed(() => {
-    return this.localCartItems().reduce(
-      (total, item) => total + item.price * item.quantity,
-      0
-    );
-  });
-
-  getTotalPrice = computed(() => {
-    const shipping = this.basketQuery.data()?.shippingPrice ?? 0;
-    return this.getSubtotal() + shipping;
-  });
 }

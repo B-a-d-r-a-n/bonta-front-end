@@ -236,6 +236,7 @@
             iconPos="right"
             (onClick)="nextStep()"
             [disabled]="!canProceed()"
+            [loading]="isUpdatingBasket()"
           ></p-button>
           } @else {
           <p-button

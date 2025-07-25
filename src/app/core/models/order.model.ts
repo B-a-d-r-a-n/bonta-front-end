@@ -30,12 +30,11 @@ export interface OrderItemDTO {
 
 export interface DeliveryMethodResponse {
   id: number;
-  shortName: string;
-  deliveryTime: string;
-  description: string;
-  price: number;
+  shortName: string; // From network response, this appears to be camelCase
+  deliveryTime: string; // This too
+  description: string; // And this
+  price: number; // And this one is 'price' not 'Price'
 }
-
 export interface OrderListResponse {
   data: OrderResponse[];
   count: number;

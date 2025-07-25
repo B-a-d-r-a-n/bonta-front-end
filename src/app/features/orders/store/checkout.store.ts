@@ -23,8 +23,8 @@ export enum CheckoutStep {
 const STEPS_ORDER = [
   CheckoutStep.ADDRESS,
   CheckoutStep.DELIVERY,
-  CheckoutStep.PAYMENT,
   CheckoutStep.REVIEW,
+  CheckoutStep.PAYMENT,
 ];
 
 export interface CheckoutState {

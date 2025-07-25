@@ -1,6 +1,10 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { lastValueFrom } from 'rxjs';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpResponse,
+} from '@angular/common/http';
+import { catchError, lastValueFrom, map, of } from 'rxjs';
 import { QueryClient } from '@tanstack/angular-query-experimental';
 import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import {
@@ -119,12 +123,28 @@ export class UserQueries {
     );
   }
 
-  private fetchAddress(): Promise<AddressDTO> {
+  private fetchAddress(): Promise<AddressDTO | null> {
     return lastValueFrom(
-      this.http.get<AddressDTO>(`${this.apiUrl}${API_ENDPOINTS.AUTH.ADDRESS}`)
+      this.http
+        .get<AddressDTO>(`${this.apiUrl}${API_ENDPOINTS.AUTH.ADDRESS}`, {
+          observe: 'response', // <--- Tell HttpClient to give us the full response
+        })
+        .pipe(
+          map((response: HttpResponse<AddressDTO | null>) => {
+            // Now we can check the status code directly
+            if (response.status === 204) {
+              return null; // This is a successful response meaning "no address"
+            }
+            return response.body; // For a 200 OK, return the address from the body
+          }),
+          catchError((error: HttpErrorResponse) => {
+            // Keep this for any other unexpected errors (e.g., 500 server error)
+            console.error('Failed to fetch address:', error);
+            throw error;
+          })
+        )
     );
   }
-
   private loginUser(request: LoginRequest): Promise<UserResponse> {
     return lastValueFrom(
       this.http.post<UserResponse>(

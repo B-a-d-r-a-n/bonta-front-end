@@ -24,19 +24,15 @@ export class CartDataService {
   private toastService = inject(ToastService);
 
   // --- QUERIES & MUTATIONS ---
-  // The query reactively depends on the ID from the simple store.
   basketQuery = injectQuery(() => {
     const id = this.cartStore.basketId();
-    return {
-      ...this.cartQueries.getBasketById(id),
-      enabled: !!id,
-    };
+    return { ...this.cartQueries.getBasketById(id), enabled: !!id };
   });
 
   updateBasketMutation = injectMutation(() => this.cartQueries.updateBasket());
   deleteBasketMutation = injectMutation(() => this.cartQueries.deleteBasket());
 
-  // --- COMPUTED SIGNALS (for any component to use) ---
+  // --- LOCAL UI STATE & COMPUTED SIGNALS ---
   items: WritableSignal<BasketItemDTO[]> = signal([]);
   isDirty = computed(
     () =>
@@ -54,7 +50,6 @@ export class CartDataService {
   );
 
   constructor() {
-    // The effect that syncs server data to our local editable state lives here.
     effect(() => {
       const serverItems = this.basketQuery.data()?.items ?? [];
       this.items.set(JSON.parse(JSON.stringify(serverItems)));
@@ -63,55 +58,46 @@ export class CartDataService {
 
   // --- ACTIONS ---
   addItem(product: ProductResponse, quantity: number = 1) {
-    let currentBasket = this.basketQuery.data();
-    if (currentBasket) {
-      const newItems = [...currentBasket.items];
-      const itemIndex = newItems.findIndex((i) => i.id === product.id);
-      if (itemIndex > -1) {
-        newItems[itemIndex].quantity += quantity;
-      } else {
-        newItems.push({
-          id: product.id,
-          productName: product.name,
-          pictureUrl: product.pictureUrl,
-          price: product.price,
-          quantity,
-        });
-      }
-      this.updateBasketMutation.mutate(
-        { ...currentBasket, items: newItems },
-        {
-          onSuccess: () =>
-            this.toastService.showSuccess(
-              'Added to Cart',
-              `${product.name} has been added.`
-            ),
-        }
-      );
+    const basketId = this.cartStore.basketId();
+    const currentBasket = this.basketQuery.data();
+    const idToUpdate = basketId || uuidv4();
+    const currentItems = currentBasket?.items ?? [];
+    const newItems = [...currentItems];
+    const itemIndex = newItems.findIndex((i) => i.id === product.id);
+
+    if (itemIndex > -1) {
+      newItems[itemIndex].quantity += quantity;
     } else {
-      const newBasketId = uuidv4();
-      const newItem: BasketItemDTO = {
+      newItems.push({
         id: product.id,
         productName: product.name,
         pictureUrl: product.pictureUrl,
         price: product.price,
         quantity,
-      };
-      const newBasket: BasketDTO = {
-        id: newBasketId,
-        items: [newItem],
-        shippingPrice: 0,
-      };
-      this.updateBasketMutation.mutate(newBasket, {
-        onSuccess: () => {
-          this.cartStore.setId(newBasketId); // CRITICAL: Update the store's ID
-          this.toastService.showSuccess(
-            'Added to Cart',
-            `${product.name} has been added.`
-          );
-        },
       });
     }
+
+    const basketToUpdate: BasketDTO = {
+      id: idToUpdate,
+      items: newItems,
+      shippingPrice: currentBasket?.shippingPrice ?? 0,
+    };
+
+    this.updateBasketMutation.mutate(basketToUpdate, {
+      onSuccess: (updatedBasket) => {
+        if (!basketId) {
+          this.cartStore.setId(updatedBasket.id);
+        }
+        this.toastService.showSuccess(
+          'Added to Cart',
+          `${product.name} has been added.`
+        );
+      },
+      onError: (err) => {
+        console.error('AddItem mutation failed:', err);
+        this.toastService.showError('Error', 'Could not add item to cart.');
+      },
+    });
   }
 
   updateCart() {
@@ -121,10 +107,7 @@ export class CartDataService {
         { ...currentBasket, items: this.items() },
         {
           onSuccess: () =>
-            this.toastService.showSuccess(
-              'Success',
-              'Cart updated successfully.'
-            ),
+            this.toastService.showSuccess('Success', 'Cart updated.'),
         }
       );
     }

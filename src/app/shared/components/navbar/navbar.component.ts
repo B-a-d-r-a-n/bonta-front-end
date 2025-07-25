@@ -1,70 +1,54 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { CommonModule } from '@angular/common';
+
+// PrimeNG Modules
 import { ButtonModule } from 'primeng/button';
 import { TieredMenuModule } from 'primeng/tieredmenu';
 import { BadgeModule } from 'primeng/badge';
 import { MenuItem } from 'primeng/api';
-import { injectQuery } from '@tanstack/angular-query-experimental';
-import { CartQueries } from '../../../features/cart/queries/cart.queries';
-import { AuthService } from '@core/services/auth.service';
-import { StorageUtils } from '@shared/utils/storage.utils';
-import { STORAGE_KEYS } from '@core/constants/storage-keys';
-import { BasketItemDTO } from '@core/models';
 import { DrawerModule } from 'primeng/drawer';
-import { UserResponse } from '@core/models/user.model';
-import { CartStore } from '@features/cart/store/cart.store';
+
+// Core & Shared Imports
+import { AuthService } from '@core/services/auth.service';
 import { CartDataService } from '@features/cart/services/cart-data.service';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  templateUrl: './navbar.component.html',
-  styleUrls: ['./navbar.component.scss'],
   imports: [
+    CommonModule,
     RouterLink,
-    DrawerModule,
     RouterLinkActive,
     ButtonModule,
     TieredMenuModule,
     BadgeModule,
+    DrawerModule,
   ],
+  templateUrl: './navbar.component.html',
+  styleUrls: ['./navbar.component.scss'],
 })
 export class NavbarComponent {
+  readonly authService = inject(AuthService);
   readonly cartService = inject(CartDataService);
-  private authService = inject(AuthService);
 
   sidebarVisible = signal(false);
 
-  isAuthenticated = computed(() => this.authService.isAuthenticated());
-  currentUser = computed(() => {
-    if (this.authService.isLoggedIn()) {
-      return StorageUtils.getLocalItem<UserResponse>(STORAGE_KEYS.CURRENT_USER);
-    }
-    return null;
-  });
+  categories = [
+    { label: 'Electronics', typeId: 1, icon: 'pi pi-headphones' },
+    { label: 'Fashion', typeId: 2, icon: 'pi pi-user' },
+    { label: 'Home', typeId: 3, icon: 'pi pi-home' },
+    { label: 'Books', typeId: 7, icon: 'pi pi-book' },
+  ];
 
   userMenuItems: MenuItem[] = [
-    {
-      label: 'Profile',
-      icon: 'pi pi-user',
-      routerLink: '/user/profile',
-    },
-    {
-      label: 'My Orders',
-      icon: 'pi pi-shopping-bag',
-      routerLink: '/orders',
-    },
-    {
-      separator: true,
-    },
+    { label: 'Profile', icon: 'pi pi-user', routerLink: '/user/profile' },
+    { label: 'My Orders', icon: 'pi pi-shopping-bag', routerLink: '/orders' },
+    { separator: true },
     {
       label: 'Logout',
       icon: 'pi pi-sign-out',
-      command: () => this.logout(),
+      command: () => this.authService.logout(),
     },
   ];
-
-  logout(): void {
-    this.authService.logout();
-  }
 }

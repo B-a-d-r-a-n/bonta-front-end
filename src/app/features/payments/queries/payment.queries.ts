@@ -1,4 +1,4 @@
-import { inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { lastValueFrom } from 'rxjs';
 import {
@@ -17,7 +17,7 @@ export interface PaymentWebhookRequest {
   // Add webhook request properties as needed
   [key: string]: any;
 }
-
+@Injectable({ providedIn: 'root' })
 export class PaymentQueries {
   private http = inject(HttpClient);
   private queryClient = inject(QueryClient);
@@ -27,18 +27,23 @@ export class PaymentQueries {
   private static readonly PAYMENT_INTENT_KEY = ['paymentIntent'];
 
   // Create payment intent mutation
-  createPaymentIntent = injectMutation(() => ({
-    mutationFn: (request: PaymentIntentRequest) =>
-      this.createPaymentIntentRequest(request),
-    onSuccess: (updatedBasket: BasketDTO) => {
-      // Update basket with payment intent data
-      this.queryClient.setQueryData(['basket'], updatedBasket);
-    },
-    onError: (error: ErrorDetails) => {
-      console.error('Payment intent creation failed:', error.errorMessage);
-    },
-    retry: 3,
-  }));
+  createPaymentIntent() {
+    return {
+      mutationFn: (basketId: string) =>
+        this.createPaymentIntentRequest(basketId),
+      onSuccess: (updatedBasket: BasketDTO) => {
+        // Update basket with payment intent data
+        this.queryClient.setQueryData(
+          ['basket', updatedBasket.id],
+          updatedBasket
+        );
+      },
+      onError: (error: ErrorDetails) => {
+        console.error('Payment intent creation failed:', error.errorMessage);
+      },
+      retry: 0, // Payment intents should not be retried automatically.
+    };
+  }
 
   // Process webhook mutation
   processWebhook = injectMutation(() => ({
@@ -56,13 +61,11 @@ export class PaymentQueries {
   }));
 
   // API methods
-  private createPaymentIntentRequest(
-    request: PaymentIntentRequest
-  ): Promise<BasketDTO> {
+  private createPaymentIntentRequest(basketId: string): Promise<BasketDTO> {
     return lastValueFrom(
       this.http.post<BasketDTO>(
-        `${this.apiUrl}${API_ENDPOINTS.PAYMENTS.CREATE_PAYMENT_INTENT}`,
-        request
+        `${this.apiUrl}${API_ENDPOINTS.PAYMENTS.CREATE_PAYMENT_INTENT}/${basketId}`,
+        {} // The body is empty for this request
       )
     );
   }
