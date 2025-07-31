@@ -41,6 +41,26 @@ body {
   color: #e2e8f0;
 }
 
+h3 {
+  color: #1f2937; /* Tailwind's gray-800 */
+}
+
+.dark h2 {
+  color: #f8fafc; /* Tailwind's slate-50 */
+}
+
+.dark h3 {
+  color: #f8fafc; /* Tailwind's slate-50 */
+}
+
+.why-shop-with-us {
+  background-color: #ffffff;
+}
+
+.dark .why-shop-with-us {
+  background-color: #1e293b; /* Tailwind's slate-800 */
+}
+
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
