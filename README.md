@@ -1,304 +1,99 @@
-# Boon E-commerce Frontend
+# Bonta E-commerce Frontend
 
-A modern Angular 20 e-commerce application built with TanStack Query, NgRx SignalStore, PrimeNG, and Tailwind CSS.
+This repository contains the frontend for "Bonta," a modern e-commerce platform built with Angular. The application showcases a feature-rich, scalable, and performant online shopping experience.
 
 ## 🚀 Features
 
-- **Angular 20** with zoneless change detection for optimal performance
-- **TanStack Query** for server state management and caching
-- **NgRx SignalStore** for complex client-side state (checkout, filters)
-- **Angular Signals** for component-specific UI state
-- **PrimeNG** components with Tailwind CSS styling
-- **Feature-based architecture** for scalable development
-- **Accessibility** compliant with WCAG 2.2 guidelines
-- **Responsive design** with mobile-first approach
+- **Modern Technology Stack**: Built on the latest Angular framework, utilizing modern tools and libraries for a high-quality development experience.
+- **Comprehensive E-commerce Functionality**: Includes essential features like product listings, detailed product views, a shopping cart, and a complete checkout process with payment integration.
+- **User Authentication**: Secure user registration and login functionality to manage profiles and track orders.
+- **Responsive Design**: A mobile-first approach ensures a seamless experience across all devices, from desktops to smartphones.
+- **State Management**: Utilizes robust state management solutions for predictable and maintainable application state.
+- **Component-Based Architecture**: A modular and reusable component structure for easy maintenance and scalability.
 
 ## 📁 Project Structure
+
+The project follows a feature-based architecture to promote scalability and separation of concerns.
 
 ```
 src/
 ├── app/
-│   ├── core/                          # Global utilities and models
-│   │   ├── guards/                    # Route guards (e.g., auth guard)
-│   │   ├── interceptors/              # HTTP interceptors (e.g., auth token)
-│   │   ├── models/                    # TypeScript interfaces
-│   │   ├── services/                  # Global services
-│   │   ├── constants/                 # App-wide constants
-│   │   └── enums/                     # TypeScript enums
-│   ├── features/                      # Feature modules
-│   │   ├── products/                  # Product-related functionality
-│   │   │   ├── components/            # Standalone components
-│   │   │   ├── queries/               # TanStack Query logic
-│   │   │   └── store/                 # NgRx SignalStore for product filters
-│   │   ├── cart/                      # Cart-related functionality
-│   │   ├── orders/                    # Order-related functionality
-│   │   ├── user/                      # User-related functionality
-│   │   └── payments/                  # Payment-related functionality
-│   └── shared/                        # Shared utilities and components
-│       ├── components/                # PrimeNG wrappers
-│       ├── layouts/                   # Layout components
-│       ├── pipes/                     # Custom pipes
-│       └── utils/                     # Utility functions
-├── assets/                            # Static assets
-├── styles/                            # Global Tailwind CSS
-└── environments/                      # Environment configs
+│   ├── core/                          # Global services, models, guards, and interceptors
+│   ├── features/                      # Feature modules for different business domains
+│   │   ├── cart/                      # Shopping cart functionality
+│   │   ├── orders/                    # Order management and checkout
+│   │   ├── products/                  # Product browsing and details
+│   │   └── user/                      # User authentication and profile
+│   └── shared/                        # Reusable components, pipes, and utilities
+├── assets/                            # Static assets like images and fonts
+├── environments/                      # Environment-specific configurations
+└── styles/                            # Global styles and themes
 ```
 
 ## 🛠️ Technology Stack
 
-### Core Framework
+This project is built with a modern and powerful set of technologies:
 
-- **Angular 20** - Latest version with standalone components
-- **TypeScript 5.5+** - Strict mode enabled
-- **Zoneless Change Detection** - For better performance
+- **Angular**: A leading frontend framework for building dynamic and single-page applications.
+- **TypeScript**: A typed superset of JavaScript that enhances code quality and maintainability.
+- **PrimeNG**: A rich set of UI components for Angular.
+- **Tailwind CSS**: A utility-first CSS framework for rapid UI development.
+- **NgRx (Signals)**: For reactive state management in Angular.
+- **TanStack Query**: For data fetching, caching, and state synchronization.
+- **Stripe**: For secure online payment processing.
 
-### State Management
+## ⚙️ Getting Started
 
-- **TanStack Query v5** - Server state management and caching
-- **NgRx SignalStore v19.2.1** - Complex client-side state
-- **Angular Signals** - Component-specific UI state
-
-### UI/UX
-
-- **PrimeNG v20** - UI component library
-- **Tailwind CSS v4.1** - Utility-first CSS framework
-- **Accessibility** - WCAG 2.2 AA compliance
-
-### Development Tools
-
-- **ESLint** - Code linting
-- **Prettier** - Code formatting
-- **Jest** - Unit testing
-- **Cypress/Playwright** - E2E testing
-
-## 🚀 Getting Started
+Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
 
 ### Prerequisites
 
-- Node.js 18+
-- npm or yarn
-- Angular CLI 20
+- Node.js ([download](https://nodejs.org/en/download/))
+- Angular CLI: `npm install -g @angular/cli`
 
 ### Installation
 
-1. **Clone the repository**
+1.  **Clone the repository:**
 
-   ```bash
-   git clone <repository-url>
-   cd boon-front-end
-   ```
+    ```bash
+    git clone https://github.com/your-username/bonta-front-end.git
+    ```
 
-2. **Install dependencies**
+2.  **Navigate to the project directory:**
 
-   ```bash
-   npm install
-   ```
+    ```bash
+    cd bonta-front-end
+    ```
 
-3. **Install additional packages** (when needed)
+3.  **Install dependencies:**
 
-   ```bash
-   # TanStack Query
-   npm install @tanstack/angular-query
+    ```bash
+    npm install
+    ```
 
-   # NgRx SignalStore
-   npm install @ngrx/signals
+### Running the Application
 
-   # PrimeNG
-   npm install primeng primeicons
-
-   # Tailwind CSS
-   npm install -D tailwindcss postcss autoprefixer
-   ```
-
-4. **Start development server**
-
-   ```bash
-   npm start
-   ```
-
-5. **Build for production**
-   ```bash
-   npm run build
-   ```
-
-## 📋 API Integration
-
-The application integrates with a .NET e-commerce API with the following endpoints:
-
-### Authentication (`/api/Authentication`)
-
-- `POST /login` - User login
-- `POST /register` - User registration
-- `GET /emailExists` - Check email availability
-- `GET /currentUser` - Get current user
-- `GET /address` - Get user address
-- `PUT /address` - Update user address
-
-### Baskets (`/api/Baskets`)
-
-- `GET /` - Get user basket
-- `POST /` - Add item to basket
-- `PUT /` - Update basket item
-- `DELETE /` - Remove item from basket
-
-### Orders (`/api/Orders`)
-
-- `POST /` - Create order
-- `GET /` - Get user orders
-- `GET /deliveryMethods` - Get delivery methods
-
-### Payments (`/api/Payments`)
-
-- `POST /{basketId}` - Create payment intent
-- `POST /WebHook` - Payment webhook
-
-### Products (`/api/Products`)
-
-- `GET /` - Get paginated products
-- `GET /{id}` - Get single product
-- `GET /brands` - Get product brands
-- `GET /types` - Get product types
-
-## 🏗️ Architecture Patterns
-
-### State Management Strategy
-
-- **TanStack Query**: Server state (products, cart, orders)
-- **NgRx SignalStore**: Complex client state (checkout flow, filters)
-- **Signals**: Component-specific UI state (loading, form state)
-
-### Component Architecture
-
-- **Standalone Components**: All components are standalone
-- **Feature-based Structure**: Organized by business features
-- **Shared Components**: Reusable UI components
-
-### Error Handling
-
-- **Global Error Interceptor**: HTTP error handling
-- **Toast Notifications**: User feedback
-- **Form Validation**: Client-side validation
-
-## 🧪 Testing Strategy
-
-### Unit Testing
-
-- **Jest** for components, services, and utilities
-- **Mock Query Client** for TanStack Query testing
-- **Mock SignalStore** for NgRx SignalStore testing
-- **Accessibility Testing** with axe-core
-
-### Integration Testing
-
-- Component interactions with TanStack Query
-- NgRx SignalStore state changes and methods
-- API integration with mock backends
-
-### E2E Testing
-
-- **Cypress/Playwright** for user journey testing
-- Critical paths: login, add to cart, checkout
-- Responsive design testing
-
-## 📱 Responsive Design
-
-The application follows a mobile-first approach with Tailwind CSS breakpoints:
-
-- **Mobile**: Default styles
-- **Tablet**: `sm:` prefix (640px+)
-- **Desktop**: `md:` prefix (768px+)
-- **Large Desktop**: `lg:` prefix (1024px+)
-
-## ♿ Accessibility
-
-- **WCAG 2.2 AA** compliance
-- **ARIA attributes** for screen readers
-- **Keyboard navigation** support
-- **Focus management** for better UX
-- **Color contrast** ratios maintained
-
-## 🔧 Development Workflow
-
-### Code Style
-
-- **Angular Style Guide** compliance
-- **ESLint** with `@angular-eslint` rules
-- **Prettier** for consistent formatting
-- **Conventional Commits** for git messages
-
-### Git Workflow
-
-- **GitFlow** branching strategy
-- **Feature branches** for new development
-- **Pull request reviews** with automated checks
-
-### CI/CD Pipeline
-
-- Automated testing and linting
-- Build and deploy to staging
-- Accessibility testing with axe-core
-
-## 📦 Build Configuration
-
-### Development
+Once the dependencies are installed, you can start the development server:
 
 ```bash
-npm start          # Start dev server
-npm run build      # Build for production
-npm run test       # Run unit tests
-npm run e2e        # Run E2E tests
-npm run lint       # Run ESLint
-npm run format     # Run Prettier
+ng serve
 ```
 
-### Environment Configuration
+The application will be available at `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
 
-- `environment.ts` - Development settings
-- `environment.prod.ts` - Production settings
+## ✨ Available Scripts
 
-## 🚀 Performance Optimization
+In the project directory, you can run the following commands:
 
-- **Zoneless Change Detection** for better performance
-- **Lazy Loading** for route-level and component-level code splitting
-- **TanStack Query Caching** with appropriate stale times
-- **Image Optimization** with lazy loading
-- **Bundle Splitting** by feature and vendor libraries
-
-## 🔒 Security
-
-- **JWT Token** authentication
-- **HTTP Interceptors** for secure API calls
-- **Input Sanitization** to prevent XSS
-- **Content Security Policy** headers
-- **HTTPS** enforcement in production
-
-## 📈 Monitoring & Analytics
-
-- **Error Tracking** with global error interceptor
-- **Performance Monitoring** with Angular DevTools
-- **User Analytics** (to be implemented)
-- **A/B Testing** capabilities (to be implemented)
+- `ng serve`: Starts the development server.
+- `ng build`: Builds the project for production.
+- `ng test`: Runs the unit tests.
+- `ng lint`: Lints the project files.
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/your-username/bonta-front-end/issues).
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-For support and questions:
-
-- Create an issue in the repository
-- Check the documentation
-- Review the code examples
-
----
-
-**Built with ❤️ using Angular 20, TanStack Query, NgRx SignalStore, and PrimeNG**
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
