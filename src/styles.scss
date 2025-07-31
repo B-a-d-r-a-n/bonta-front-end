@@ -28,9 +28,14 @@ body {
 }
 
 body {
-  background-color: #f9fafb;
+  background-color: #f9fafb; /* Light mode default */
   color: #1f2937;
   line-height: 1.6;
+}
+
+.dark body {
+  background-color: #0f172a; /* Dark mode default */
+  color: #e2e8f0;
 }
 
 /* Custom scrollbar */
@@ -51,20 +56,32 @@ body {
   background: #94a3b8;
 }
 
+.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
 /* Focus styles for accessibility */
-*:focus {
+*:focus-visible {
   outline: 2px solid $primary-color;
   outline-offset: 2px;
 }
 
 /* Button focus styles */
-button:focus {
+button:focus-visible {
   outline: 2px solid $primary-color;
   outline-offset: 2px;
 }
 
 /* Link focus styles */
-a:focus {
+a:focus-visible {
   outline: 2px solid $primary-color;
   outline-offset: 2px;
 }

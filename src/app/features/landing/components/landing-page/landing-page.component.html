@@ -21,19 +21,20 @@
 
   <!-- Category Shortcuts -->
   <section>
-    <h2 class="text-2xl font-bold text-gray-900 mb-6">Shop by Category</h2>
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+      Shop by Category
+    </h2>
     <div
       class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 text-center"
     >
       @for (category of categories; track category.label) {
       <a
         routerLink="/products"
-        [queryParams]="{ type: category.typeId }"
+        [queryParams]="{ typeId: category.typeId }"
         class="group"
       >
         <div
-          class="flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 mx-auto rounded-full transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg"
-          [ngClass]="category.bgColor"
+          class="flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 mx-auto rounded-full bg-gray-100 dark:bg-gray-800 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg"
         >
           <i
             class="pi {{ category.icon }} text-3xl"
@@ -41,7 +42,7 @@
           ></i>
         </div>
         <span
-          class="mt-2 block font-medium text-sm text-gray-700 group-hover:text-primary-600"
+          class="mt-2 block font-medium text-sm text-gray-700 dark:text-gray-300 group-hover:text-primary-600 dark:group-hover:text-primary-400"
           >{{ category.label }}</span
         >
       </a>
@@ -52,10 +53,12 @@
   <!-- Featured Products -->
   <section>
     <div class="flex justify-between items-baseline mb-6">
-      <h2 class="text-2xl font-bold text-gray-900">Featured Products</h2>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        Featured Products
+      </h2>
       <a
         routerLink="/products"
-        class="text-sm font-semibold text-primary-600 hover:underline"
+        class="text-sm font-semibold text-primary-600 hover:underline dark:text-primary-400"
         >View All</a
       >
     </div>
@@ -63,7 +66,7 @@
     @if (isFeaturedProductsLoading()) {
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       @for (i of [1,2,3,4]; track i) {
-      <p-skeleton height="28rem"></p-skeleton>
+      <p-skeleton height="28rem" styleClass="rounded-lg"></p-skeleton>
       }
     </div>
     } @else { @if (featuredProductsData(); as products) {
@@ -79,8 +82,10 @@
   </section>
 
   <!-- Why Shop With Us -->
-  <section class="bg-white p-8 rounded-2xl shadow-soft">
-    <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
+  <section class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-soft">
+    <h2
+      class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 text-center"
+    >
       Why Shop With Us?
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
@@ -90,8 +95,10 @@
         >
           <i class="pi pi-truck text-3xl"></i>
         </div>
-        <h3 class="text-lg font-semibold mb-2">Fast Delivery</h3>
-        <p class="text-gray-600">
+        <h3 class="text-lg font-semibold mb-2 dark:text-gray-100">
+          Fast Delivery
+        </h3>
+        <p class="text-gray-600 dark:text-gray-400">
           Get your orders delivered to your doorstep in no time.
         </p>
       </div>
@@ -101,8 +108,10 @@
         >
           <i class="pi pi-shield text-3xl"></i>
         </div>
-        <h3 class="text-lg font-semibold mb-2">Secure Payments</h3>
-        <p class="text-gray-600">
+        <h3 class="text-lg font-semibold mb-2 dark:text-gray-100">
+          Secure Payments
+        </h3>
+        <p class="text-gray-600 dark:text-gray-400">
           Your payments are safe and secure with our top-notch encryption.
         </p>
       </div>
@@ -112,8 +121,10 @@
         >
           <i class="pi pi-comments text-3xl"></i>
         </div>
-        <h3 class="text-lg font-semibold mb-2">24/7 Support</h3>
-        <p class="text-gray-600">
+        <h3 class="text-lg font-semibold mb-2 dark:text-gray-100">
+          24/7 Support
+        </h3>
+        <p class="text-gray-600 dark:text-gray-400">
           Our support team is always here to help you with any queries.
         </p>
       </div>

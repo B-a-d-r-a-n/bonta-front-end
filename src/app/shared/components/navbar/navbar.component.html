@@ -1,5 +1,5 @@
 <nav
-  class="w-full bg-white/90 backdrop-blur-lg border-b border-gray-200 shadow-sm sticky top-0 z-[1020] transition-all duration-300"
+  class="w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-slate-800 shadow-sm sticky top-0 z-[1020] transition-all duration-300"
 >
   <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16">
@@ -8,30 +8,30 @@
         <!-- Logo -->
         <a
           routerLink="/"
-          class="flex items-center gap-3 flex-shrink-0 group"
+          class="flex items-center gap-2 flex-shrink-0 group"
           aria-label="Boon Homepage"
         >
           <div
-            class="w-9 h-9 sm:hidden text-gray-800 bg-primary-600 rounded-xl flex items-center justify-center font-bold text-xl transform transition-all duration-300 group-hover:bg-primary-500 group-hover:scale-110 group-hover:rotate-[-12deg]"
+            class="w-9 h-9 text-white bg-primary-600 rounded-xl flex items-center justify-center font-bold text-xl transform transition-all duration-300 group-hover:bg-primary-500 group-hover:scale-110 group-hover:rotate-[-12deg]"
           >
-            Boon
+            B
           </div>
           <span
-            class="font-bold text-2xl text-gray-800 hidden sm:block tracking-tight"
+            class="font-bold text-2xl text-gray-800 dark:text-gray-100 hidden sm:block tracking-tight"
             >Boon</span
           >
         </a>
 
         <!-- Desktop Category Navigation -->
         <ul
-          class="hidden lg:flex items-center gap-2 text-base font-medium text-gray-600"
+          class="hidden lg:flex items-center gap-2 text-base font-medium text-gray-600 dark:text-gray-300"
         >
           <li>
             <a
               routerLink="/products"
-              routerLinkActive="text-primary-600"
+              routerLinkActive="text-primary-600 dark:text-primary-400"
               [routerLinkActiveOptions]="{ exact: true }"
-              class="px-3 py-2 rounded-lg hover:text-primary-600 transition-colors"
+              class="px-3 py-2 rounded-lg hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
               >Shop All</a
             >
           </li>
@@ -40,8 +40,8 @@
             <a
               [routerLink]="['/products']"
               [queryParams]="{ typeId: category.typeId }"
-              routerLinkActive="text-primary-600"
-              class="px-3 py-2 rounded-lg hover:text-primary-600 transition-colors"
+              routerLinkActive="text-primary-600 dark:text-primary-400"
+              class="px-3 py-2 rounded-lg hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
               >{{ category.label }}</a
             >
           </li>
@@ -51,12 +51,24 @@
 
       <!-- User Actions and Mobile Menu Trigger -->
       <div class="flex items-center gap-1 sm:gap-2">
+        <!-- Theme Toggle Button -->
+        <p-button
+          [icon]="themeService.theme() === 'dark' ? 'pi pi-sun' : 'pi pi-moon'"
+          [rounded]="true"
+          [text]="true"
+          styleClass="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+          (click)="themeService.toggleTheme()"
+          pTooltip="Toggle Theme"
+          tooltipPosition="bottom"
+          aria-label="Toggle dark mode"
+        ></p-button>
+
         <!-- Cart Button -->
         <p-button
           icon="pi pi-shopping-cart"
           [rounded]="true"
           [text]="true"
-          styleClass="text-gray-700 hover:bg-gray-100"
+          styleClass="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
           routerLink="/cart"
           pBadge
           [value]="
@@ -72,7 +84,7 @@
         @if(authService.isAuthenticated()){
         <p-button
           (onClick)="menu.toggle($event)"
-          styleClass="text-gray-700 hover:bg-gray-100"
+          styleClass="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
           [text]="true"
           [rounded]="true"
           aria-label="User Account Menu"
@@ -111,7 +123,7 @@
           icon="pi pi-bars"
           [text]="true"
           class="lg:hidden"
-          styleClass="text-gray-700 hover:bg-gray-100 lg:hidden"
+          styleClass="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 lg:hidden"
           (click)="sidebarVisible.set(true)"
           aria-label="Open Menu"
         ></p-button>
@@ -124,7 +136,7 @@
 <p-drawer
   [(visible)]="sidebarVisible"
   position="right"
-  styleClass="w-full max-w-xs"
+  styleClass="w-full max-w-xs dark:bg-slate-900 dark:text-gray-200"
 >
   <ng-template pTemplate="header">
     <a
@@ -137,7 +149,10 @@
       >
         B
       </div>
-      <span class="font-bold text-2xl text-gray-800 tracking-tight">Boon</span>
+      <span
+        class="font-bold text-2xl text-gray-800 dark:text-gray-100 tracking-tight"
+        >Boon</span
+      >
     </a>
   </ng-template>
   <ul class="flex flex-col gap-2 p-4 text-lg">
@@ -157,13 +172,13 @@
         [outlined]="true"
       />
     </li>
-    <hr class="my-4" />
+    <hr class="my-4 border-gray-200 dark:border-gray-700" />
     }
     <li>
       <a
         routerLink="/products"
         (click)="sidebarVisible.set(false)"
-        class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
+        class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
       >
         <i class="pi pi-shopping-bag w-6 text-center"></i>
         <span>Shop All</span>
@@ -175,20 +190,20 @@
         [routerLink]="['/products']"
         [queryParams]="{ typeId: category.typeId }"
         (click)="sidebarVisible.set(false)"
-        class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
+        class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
       >
         <i [class]="category.icon" class="w-6 text-center"></i>
         <span>{{ category.label }}</span>
       </a>
     </li>
     }
-    <hr class="my-4" />
+    <hr class="my-4 border-gray-200 dark:border-gray-700" />
     @if(authService.isAuthenticated()) {
     <li>
       <a
         routerLink="/user/profile"
         (click)="sidebarVisible.set(false)"
-        class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
+        class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
       >
         <i class="pi pi-user w-6 text-center"></i>
         <span>Profile</span>
@@ -198,7 +213,7 @@
       <a
         routerLink="/orders"
         (click)="sidebarVisible.set(false)"
-        class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
+        class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
       >
         <i class="pi pi-book w-6 text-center"></i>
         <span>My Orders</span>
@@ -207,7 +222,7 @@
     <li>
       <a
         (click)="authService.logout(); sidebarVisible.set(false)"
-        class="flex items-center gap-3 p-3 rounded-lg hover:bg-red-50 cursor-pointer text-red-600"
+        class="flex items-center gap-3 p-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/50 cursor-pointer text-red-600"
       >
         <i class="pi pi-sign-out w-6 text-center"></i>
         <span>Logout</span>

@@ -6,6 +6,10 @@
   background-color: #f8fafc; /* gray-50 */
 }
 
+:host-context(.dark) {
+  background-color: #0f172a; /* slate-900 */
+}
+
 /* Ensure proper layout with navbar and footer */
 app-navbar {
   position: sticky;

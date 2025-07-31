@@ -8,10 +8,12 @@ import { TieredMenuModule } from 'primeng/tieredmenu';
 import { BadgeModule } from 'primeng/badge';
 import { MenuItem } from 'primeng/api';
 import { DrawerModule } from 'primeng/drawer';
+import { TooltipModule } from 'primeng/tooltip';
 
 // Core & Shared Imports
 import { AuthService } from '@core/services/auth.service';
 import { CartDataService } from '@features/cart/services/cart-data.service';
+import { ThemeService } from '@core/services/theme.service';
 
 @Component({
   selector: 'app-navbar',
@@ -24,6 +26,7 @@ import { CartDataService } from '@features/cart/services/cart-data.service';
     TieredMenuModule,
     BadgeModule,
     DrawerModule,
+    TooltipModule,
   ],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
@@ -31,6 +34,7 @@ import { CartDataService } from '@features/cart/services/cart-data.service';
 export class NavbarComponent {
   readonly authService = inject(AuthService);
   readonly cartService = inject(CartDataService);
+  readonly themeService = inject(ThemeService);
 
   sidebarVisible = signal(false);
 

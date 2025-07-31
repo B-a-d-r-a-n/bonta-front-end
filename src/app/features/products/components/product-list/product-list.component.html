@@ -4,9 +4,8 @@
     <app-product-filter-sidebar></app-product-filter-sidebar>
   </aside>
 
-  <!-- Mobile Filter Drawer (was Sidebar) -->
-  <p-drawer [(visible)]="sidebarVisible">
-    <!-- FIX: Changed from p-sidebar to p-drawer -->
+  <!-- Mobile Filter Drawer -->
+  <p-drawer [(visible)]="sidebarVisible" styleClass="dark:bg-slate-900">
     <app-product-filter-sidebar></app-product-filter-sidebar>
   </p-drawer>
 
@@ -15,9 +14,11 @@
     <!-- Header with mobile filter button -->
     <div class="flex justify-between items-center mb-6">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">Products</h1>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          Products
+        </h1>
         @if(productsData(); as products) {
-        <p class="text-gray-600">
+        <p class="text-gray-600 dark:text-gray-400">
           Showing {{ products.data.length }} of {{ products.count }} results
         </p>
         }
@@ -28,6 +29,7 @@
         (click)="sidebarVisible.set(true)"
         class="lg:hidden"
         [outlined]="true"
+        aria-label="Open filters"
       ></p-button>
     </div>
 
@@ -41,18 +43,31 @@
       }
     </div>
     } @else if (productsError()) {
-    <div class="text-center py-20 bg-white rounded-2xl shadow-soft">
+    <div
+      class="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl shadow-soft"
+    >
       <i class="pi pi-exclamation-triangle text-7xl text-red-400 mb-6"></i>
-      <h2 class="text-3xl font-bold text-gray-800 mb-2">
+      <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">
         Failed to Load Products
       </h2>
-      <p-button label="Retry" icon="pi pi-refresh" (onClick)="retryFetch()" />
+      <p-button
+        label="Retry"
+        icon="pi pi-refresh"
+        (onClick)="retryFetch()"
+        aria-label="Retry fetching products"
+      />
     </div>
     } @else if (!productsData()?.data?.length) {
-    <div class="text-center py-20 bg-white rounded-2xl shadow-soft">
+    <div
+      class="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl shadow-soft"
+    >
       <i class="pi pi-inbox text-7xl text-gray-400 mb-6"></i>
-      <h2 class="text-3xl font-bold text-gray-800 mb-2">No Products Found</h2>
-      <p class="text-gray-600 mb-8">Try adjusting your filters.</p>
+      <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+        No Products Found
+      </h2>
+      <p class="text-gray-600 dark:text-gray-400 mb-8">
+        Try adjusting your filters.
+      </p>
     </div>
     } @else {
     <div
