@@ -1,5 +1,5 @@
 {
-  "name": "boon-front-end",
+  "name": "bonta-front-end",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -7,7 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:boon-front-end": "node dist/boon-front-end/server/server.mjs"
+    "serve:ssr:bonta-front-end": "node dist/bonta-front-end/server/server.mjs"
   },
   "prettier": {
     "overrides": [

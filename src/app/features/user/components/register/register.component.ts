@@ -97,7 +97,7 @@ export class RegisterComponent {
 
       this.toastService.showSuccess(
         'Registration Successful',
-        'Welcome to Boon!'
+        'Welcome to Bonta!'
       );
       this.router.navigate(['/']);
     } catch (error: any) {
