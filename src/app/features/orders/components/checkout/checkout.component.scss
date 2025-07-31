@@ -2,18 +2,6 @@
   display: block;
 }
 
-.form-field {
-  @apply flex flex-col gap-2;
-
-  label {
-    @apply font-semibold text-sm text-gray-700;
-  }
-
-  input[pInputText] {
-    @apply w-full;
-  }
-}
-
 // Style p-steps to be more modern
 ::ng-deep {
   .p-steps {
@@ -35,6 +23,30 @@
         }
         .p-steps-title {
           @apply text-primary-600 font-semibold;
+        }
+      }
+    }
+  }
+}
+
+:host-context(.dark) ::ng-deep {
+  .p-steps {
+    .p-steps-item {
+      .p-menuitem-link {
+        .p-steps-number {
+          @apply bg-slate-700 text-slate-300 border-slate-600;
+        }
+        .p-steps-title {
+          @apply text-slate-400;
+        }
+      }
+
+      &.p-steps-current .p-menuitem-link {
+        .p-steps-number {
+          @apply bg-primary-500 text-white border-primary-500;
+        }
+        .p-steps-title {
+          @apply text-primary-400 font-semibold;
         }
       }
     }

@@ -1,20 +1,13 @@
-/* App-level styles */
 :host {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #f8fafc; /* gray-50 */
 }
 
-:host-context(.dark) {
-  background-color: #0f172a; /* slate-900 */
-}
-
-/* Ensure proper layout with navbar and footer */
 app-navbar {
   position: sticky;
   top: 0;
-  z-index: 1020; /* Higher than most elements */
+  z-index: 1020; 
 }
 
 main {

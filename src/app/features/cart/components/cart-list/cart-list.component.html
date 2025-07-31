@@ -1,4 +1,4 @@
-<div class="bg-gray-50 min-h-screen">
+<div class="bg-gray-50 dark:bg-slate-900 min-h-screen">
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
     <!-- Loading State -->
     @if (cartService.basketQuery.isPending() && !cartService.basketQuery.data())
@@ -10,10 +10,10 @@
     <!-- Error State -->
     @else if (cartService.basketQuery.isError()) {
     <div
-      class="text-center py-20 bg-white rounded-2xl shadow-lg border border-red-200"
+      class="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-red-200"
     >
       <i class="pi pi-exclamation-triangle text-6xl text-red-500 mb-6"></i>
-      <h2 class="text-3xl font-bold text-gray-800 mb-2">
+      <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">
         Something Went Wrong
       </h2>
       <p-button
@@ -25,17 +25,25 @@
     }
     <!-- Empty Cart State -->
     @else if (!cartService.items().length) {
-    <div class="text-center py-20 bg-white rounded-2xl shadow-lg">
+    <div
+      class="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl shadow-lg"
+    >
       <i class="pi pi-shopping-cart text-7xl text-gray-400 mb-6"></i>
-      <h2 class="text-3xl font-bold text-gray-800 mb-2">Your Cart is Empty</h2>
-      <p class="text-gray-500 mb-8">Add items to your cart to see them here.</p>
+      <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+        Your Cart is Empty
+      </h2>
+      <p class="text-gray-500 dark:text-gray-400 mb-8">
+        Add items to your cart to see them here.
+      </p>
       <p-button label="Start Shopping" routerLink="/products" size="large" />
     </div>
     }
     <!-- Cart with Items -->
     @else {
     <div class="text-center mb-12">
-      <h1 class="text-4xl font-bold tracking-tight text-gray-900">
+      <h1
+        class="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100"
+      >
         Your Shopping Cart
       </h1>
     </div>
@@ -44,7 +52,7 @@
       <div class="lg:col-span-8 space-y-4">
         @for (item of cartService.items(); track item.id) {
         <div
-          class="flex items-center gap-4 p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300"
+          class="flex items-center gap-4 p-4 bg-white dark:bg-slate-800 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300"
         >
           <img
             [src]="item.pictureUrl"
@@ -54,10 +62,14 @@
           <div class="flex-grow grid grid-cols-3 items-center gap-4">
             <!-- Product Info -->
             <div class="col-span-3 sm:col-span-1">
-              <h3 class="font-semibold text-lg text-gray-800 line-clamp-2">
+              <h3
+                class="font-semibold text-lg text-gray-800 dark:text-gray-100 line-clamp-2"
+              >
                 {{ item.productName }}
               </h3>
-              <p class="text-gray-500">{{ item.price | currency }} / unit</p>
+              <p class="text-gray-500 dark:text-gray-400">
+                {{ item.price | currency }} / unit
+              </p>
             </div>
             <!-- Quantity Control -->
             <div
@@ -76,7 +88,9 @@
             </div>
             <!-- Total & Remove -->
             <div class="col-span-1 flex items-center justify-end gap-4">
-              <p class="font-bold text-lg text-gray-900 w-24 text-right">
+              <p
+                class="font-bold text-lg text-gray-900 dark:text-gray-100 w-24 text-right"
+              >
                 {{ item.price * item.quantity | currency }}
               </p>
               <p-button
@@ -107,24 +121,34 @@
 
       <!-- Order Summary -->
       <div class="lg:col-span-4 sticky top-24">
-        <div class="bg-white rounded-xl shadow-lg p-6 space-y-4">
-          <h2 class="text-2xl font-bold text-gray-900 border-b pb-4">
+        <div
+          class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 space-y-4"
+        >
+          <h2
+            class="text-2xl font-bold text-gray-900 dark:text-gray-100 border-b pb-4 dark:border-slate-700"
+          >
             Order Summary
           </h2>
-          <div class="flex justify-between text-lg text-gray-600">
+          <div
+            class="flex justify-between text-lg text-gray-600 dark:text-gray-300"
+          >
             <span>Subtotal</span
-            ><span class="font-medium text-gray-900">{{
+            ><span class="font-medium text-gray-900 dark:text-gray-100">{{
               cartService.subtotal() | currency
             }}</span>
           </div>
-          <div class="flex justify-between text-lg text-gray-600">
+          <div
+            class="flex justify-between text-lg text-gray-600 dark:text-gray-300"
+          >
             <span>Shipping</span
-            ><span class="font-medium text-gray-900">{{
+            ><span class="font-medium text-gray-900 dark:text-gray-100">{{
               cartService.basketQuery.data()?.shippingPrice | currency
             }}</span>
           </div>
-          <hr class="my-2 border-gray-200" />
-          <div class="flex justify-between text-2xl font-bold text-gray-900">
+          <hr class="my-2 border-gray-200 dark:border-slate-700" />
+          <div
+            class="flex justify-between text-2xl font-bold text-gray-900 dark:text-gray-100"
+          >
             <span>Total</span
             ><span>{{ cartService.totalPrice() | currency }}</span>
           </div>

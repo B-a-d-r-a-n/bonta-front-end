@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { effect, signal, PLATFORM_ID, Injectable, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
@@ -6,30 +7,34 @@ import { isPlatformBrowser } from '@angular/common';
 })
 export class ThemeService {
   private platformId = inject(PLATFORM_ID);
-  theme = signal<'light' | 'dark'>('light');
+  private document = inject(DOCUMENT);
+
+  theme = signal<'light' | 'dark'>(this.getInitialThemeFromDom());
 
   constructor() {
-    if (isPlatformBrowser(this.platformId)) {
-      const savedTheme = localStorage.getItem('theme') as
-        | 'light'
-        | 'dark'
-        | null;
-      if (savedTheme) {
-        this.theme.set(savedTheme);
-      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        this.theme.set('dark');
-      }
-    }
-
     effect(() => {
       if (isPlatformBrowser(this.platformId)) {
-        document.documentElement.classList.toggle(
-          'dark',
-          this.theme() === 'dark'
-        );
-        localStorage.setItem('theme', this.theme());
+        const currentTheme = this.theme();
+
+        if (currentTheme === 'dark') {
+          this.document.documentElement.classList.add('dark');
+        } else {
+          this.document.documentElement.classList.remove('dark');
+        }
+
+        // Persist the user's choice.
+        localStorage.setItem('theme', currentTheme);
       }
     });
+  }
+
+  private getInitialThemeFromDom(): 'light' | 'dark' {
+    if (isPlatformBrowser(this.platformId)) {
+      return this.document.documentElement.classList.contains('dark')
+        ? 'dark'
+        : 'light';
+    }
+    return 'light';
   }
 
   toggleTheme() {

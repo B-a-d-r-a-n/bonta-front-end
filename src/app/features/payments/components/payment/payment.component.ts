@@ -2,7 +2,6 @@ import {
   Component,
   inject,
   signal,
-  computed,
   ViewChild,
   ElementRef,
   afterNextRender,
@@ -22,10 +21,16 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastService } from '@core/services/toast.service';
 
 // Stripe
-import { Stripe, StripeCardNumberElement, loadStripe } from '@stripe/stripe-js';
+import {
+  Stripe,
+  StripeCardNumberElement,
+  StripeCardExpiryElement,
+  StripeCardCvcElement,
+  loadStripe,
+} from '@stripe/stripe-js';
 import { environment } from '../../../../../environments/environment';
 import { OrderQueries } from '@features/orders/queries/order.queries';
-import { OrderRequest } from '@core/models';
+import { OrderRequest, BasketDTO, ErrorDetails } from '@core/models';
 import { StorageUtils } from '@shared/utils/storage.utils';
 import { STORAGE_KEYS } from '@core/constants/storage-keys';
 
@@ -53,12 +58,15 @@ export class PaymentComponent {
   private navigationState = this.router.getCurrentNavigation()?.extras.state;
   orderRequest: OrderRequest | null = this.navigationState?.['orderRequest'];
   clientSecret: string | null = this.navigationState?.['clientSecret'];
-  totalAmount: number | null = this.navigationState?.['total']; // Receive the total amount
+  totalAmount: number | null = this.navigationState?.['total'];
 
   // Stripe.js state
   stripe: Stripe | null = null;
-  cardElement: StripeCardNumberElement | null = null;
-  @ViewChild('cardElement') cardElementRef?: ElementRef;
+  elements: any;
+
+  @ViewChild('cardNumber') cardNumberRef?: ElementRef;
+  @ViewChild('cardExpiry') cardExpiryRef?: ElementRef;
+  @ViewChild('cardCvc') cardCvcRef?: ElementRef;
 
   // UI state signals
   isLoading = signal(true);
@@ -69,59 +77,94 @@ export class PaymentComponent {
 
   constructor() {
     if (!this.orderRequest || !this.clientSecret || this.totalAmount === null) {
-      // Add check for total
-      this.toastService.showError('Error', 'Invalid checkout state.');
+      this.toastService.showError(
+        'Error',
+        'Invalid checkout state. Please try again.'
+      );
       this.router.navigate(['/cart']);
       return;
     }
 
-    // Use afterNextRender for safe DOM access and to load Stripe
     afterNextRender(async () => {
-      this.stripe = await loadStripe(environment.stripePublishableKey);
-      if (this.stripe && this.clientSecret) {
-        const elements = this.stripe.elements({
-          clientSecret: this.clientSecret,
-        });
-        this.cardElement = elements.create('cardNumber');
-        this.cardElement.mount(this.cardElementRef!.nativeElement);
-        // Also create and mount other elements
-        elements.create('cardExpiry').mount('#card-expiry-element');
-        elements.create('cardCvc').mount('#card-cvc-element');
-
-        this.cardElement.on('change', (event) => {
-          this.cardError.set(event.error ? event.error.message : null);
-        });
+      try {
+        this.stripe = await loadStripe(environment.stripePublishableKey);
+        this.mountStripeElements();
+      } catch (error) {
+        console.error('Failed to load Stripe:', error);
+        this.cardError.set('Could not initialize payment gateway.');
         this.isLoading.set(false);
       }
     });
   }
 
+  mountStripeElements(): void {
+    if (!this.stripe || !this.clientSecret) {
+      this.cardError.set('Payment gateway is not ready.');
+      this.isLoading.set(false);
+      return;
+    }
+
+    if (!this.cardNumberRef || !this.cardExpiryRef || !this.cardCvcRef) {
+      setTimeout(() => this.mountStripeElements(), 50);
+      return;
+    }
+
+    this.elements = this.stripe.elements({
+      // Store the elements instance
+      clientSecret: this.clientSecret,
+      appearance: { theme: 'stripe' },
+    });
+
+    this.elements.create('cardNumber').mount(this.cardNumberRef.nativeElement);
+    this.elements.create('cardExpiry').mount(this.cardExpiryRef.nativeElement);
+    this.elements.create('cardCvc').mount(this.cardCvcRef.nativeElement);
+
+    this.isLoading.set(false);
+  }
+
   async processPayment() {
-    if (!this.stripe || !this.cardElement || !this.orderRequest) return;
+    if (
+      !this.stripe ||
+      !this.elements ||
+      !this.orderRequest ||
+      !this.clientSecret
+    ) {
+      this.cardError.set('Payment form is not ready. Please refresh.');
+      return;
+    }
     this.isProcessing.set(true);
     this.cardError.set(null);
 
-    // Step 1: Create the Order in our database (in 'Pending' state)
+    // Step 1: Create the Order in our database (this is a good practice)
     this.createOrderMutation.mutate(this.orderRequest, {
       onSuccess: async (order) => {
-        // Step 2: With the order created, confirm the payment with Stripe
-        const result = await this.stripe!.confirmCardPayment(
-          this.clientSecret!
-        );
+        // Step 2: Confirm the payment with Stripe
 
-        if (result.error) {
+        const { error, paymentIntent } = await this.stripe!.confirmPayment({
+          elements: this.elements, // Pass the elements group, not a single element
+          confirmParams: {
+            return_url: `${window.location.origin}/orders/success/${order.id}`,
+          },
+          redirect: 'if_required', // Prevents unnecessary redirects
+        });
+
+        if (error) {
           this.cardError.set(
-            result.error.message ?? 'An unknown payment error occurred.'
+            error.message ?? 'An unknown payment error occurred.'
           );
           this.isProcessing.set(false);
+        } else if (paymentIntent?.status === 'succeeded') {
+          // Payment succeeded!
+          this.queryClient.removeQueries({ queryKey: ['basket'] });
+          StorageUtils.removeLocalItem(STORAGE_KEYS.BASKET_ID);
+          this.toastService.showSuccess(
+            'Payment Successful!',
+            `Order #${order.id.substring(0, 8)} placed.`
+          );
+          this.router.navigate(['/orders/success', order.id]);
         } else {
-          if (result.paymentIntent?.status === 'succeeded') {
-            // Payment succeeded! The webhook will handle the backend update.
-            // Clear the cart and navigate to the success page.
-            this.queryClient.removeQueries({ queryKey: ['basket'] });
-            StorageUtils.removeLocalItem(STORAGE_KEYS.BASKET_ID);
-            this.router.navigate(['/orders/success', order.id]);
-          }
+          this.cardError.set('Payment requires further action or has failed.');
+          this.isProcessing.set(false);
         }
       },
       onError: (error: any) => {

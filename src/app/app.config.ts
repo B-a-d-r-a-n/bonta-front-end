@@ -10,7 +10,6 @@ import {
   withFetch,
   withInterceptors,
 } from '@angular/common/http';
-
 import { routes } from './app.routes';
 import {
   provideClientHydration,
@@ -22,7 +21,7 @@ import {
   provideQueryClient,
   QueryClient,
 } from '@tanstack/angular-query-experimental';
-import Aura from '@primeuix/themes/aura';
+import Aura from '@primeuix/themes/aura'; // <-- This is correct
 import { environment } from '../environments/environment';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { authInterceptor } from '@core/interceptors/auth.interceptor';
@@ -41,7 +40,6 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 1000 * 60 * 5,
       gcTime: 1000 * 60 * 10,
-
       retry: 3,
     },
   },
@@ -50,9 +48,11 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideAnimationsAsync(),
     providePrimeNG({
-      ripple: true,
       theme: {
         preset: Aura,
+        options: {
+          darkModeSelector: '.dark',
+        },
       },
     }),
     provideBrowserGlobalErrorListeners(),

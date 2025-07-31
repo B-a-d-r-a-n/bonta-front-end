@@ -1,6 +1,8 @@
 <div class="container mx-auto px-4 py-8">
   <div class="max-w-md mx-auto">
-    <h1 class="text-3xl font-bold text-gray-900 mb-8 text-center">
+    <h1
+      class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8 text-center"
+    >
       Secure Payment
     </h1>
 
@@ -9,24 +11,35 @@
       <p-progressSpinner styleClass="w-12 h-12" />
     </div>
     } @else {
-    <p-card header="Enter Card Details" styleClass="shadow-lg">
+    <p-card
+      header="Enter Card Details"
+      styleClass="shadow-lg dark:bg-slate-800"
+    >
       <div class="space-y-4">
         <!-- Stripe Card Number Element will be mounted here -->
         <div>
           <label class="stripe-label">Card Number</label>
-          <div id="card-element" #cardElement class="stripe-element"></div>
+          <div
+            id="card-number-element"
+            #cardNumber
+            class="stripe-element"
+          ></div>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <!-- Expiry Date -->
           <div>
             <label class="stripe-label">Expiration</label>
-            <div id="card-expiry-element" class="stripe-element"></div>
+            <div
+              id="card-expiry-element"
+              #cardExpiry
+              class="stripe-element"
+            ></div>
           </div>
           <!-- CVC -->
           <div>
             <label class="stripe-label">CVC</label>
-            <div id="card-cvc-element" class="stripe-element"></div>
+            <div id="card-cvc-element" #cardCvc class="stripe-element"></div>
           </div>
         </div>
 
@@ -48,11 +61,14 @@
           (click)="processPayment()"
           styleClass="w-full justify-center"
           size="large"
+          aria-label="Submit Payment"
         ></p-button>
       </div>
 
       <ng-template pTemplate="footer">
-        <div class="flex items-center justify-center p-4 text-gray-500 text-sm">
+        <div
+          class="flex items-center justify-center p-4 text-gray-500 dark:text-gray-400 text-sm"
+        >
           <i class="pi pi-shield mr-2"></i>
           <span>Payments are securely processed by Stripe.</span>
         </div>
