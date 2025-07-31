@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { NotFoundComponent } from './shared/components/not-found/not-found.component';
 import { authGuard } from './core/guards/auth.guard';
+import { guestGuard } from './core/guards/guest.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'landing', pathMatch: 'full' },
@@ -63,6 +63,7 @@ export const routes: Routes = [
     children: [
       {
         path: 'login',
+        canActivate: [guestGuard],
         loadComponent: () =>
           import('./features/user/components/login/login.component').then(
             (m) => m.LoginComponent
@@ -70,6 +71,7 @@ export const routes: Routes = [
       },
       {
         path: 'register',
+        canActivate: [guestGuard],
         loadComponent: () =>
           import('./features/user/components/register/register.component').then(
             (m) => m.RegisterComponent

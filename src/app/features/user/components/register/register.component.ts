@@ -97,9 +97,9 @@ export class RegisterComponent {
 
       this.toastService.showSuccess(
         'Registration Successful',
-        'Welcome! Please log in.'
+        'Welcome to Boon!'
       );
-      this.router.navigate(['/user/login']);
+      this.router.navigate(['/']);
     } catch (error: any) {
       const apiErrorMessage =
         error?.error?.errorMessage || 'Registration failed. Please try again.';
