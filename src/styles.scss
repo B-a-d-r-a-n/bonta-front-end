@@ -27,16 +27,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* 
+  REMOVED: The conflicting body background color rules.
+  PrimeNG's Aura theme will now be the sole controller of the body's background,
+  ensuring consistency.
+*/
 body {
-  background-color: #f9fafb; /* Light mode default */
   color: #1f2937;
   line-height: 1.6;
 }
 
 .dark body {
-  background-color: #0f172a; /* Dark mode default */
   color: #e2e8f0;
 }
+
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {

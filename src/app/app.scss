@@ -1,13 +1,23 @@
+/* App-level styles */
 :host {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+
+  /* Apply the background color here, not on the body */
+  background-color: #f8fafc; /* Tailwind's gray-50 */
 }
 
+:host-context(.dark) {
+  /* Apply the dark background color here */
+  background-color: #0f172a; /* Tailwind's slate-900 */
+}
+
+/* Ensure proper layout with navbar and footer */
 app-navbar {
   position: sticky;
   top: 0;
-  z-index: 1020; 
+  z-index: 1020; /* Higher than most elements */
 }
 
 main {
