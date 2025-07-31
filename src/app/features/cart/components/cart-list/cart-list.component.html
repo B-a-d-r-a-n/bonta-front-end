@@ -1,4 +1,4 @@
-<div class="bg-gray-50 dark:bg-slate-900 min-h-screen">
+'''<div class="bg-gray-50 dark:bg-slate-900 min-h-screen">
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
     <!-- Loading State -->
     @if (cartService.basketQuery.isPending() && !cartService.basketQuery.data())
@@ -40,12 +40,19 @@
     }
     <!-- Cart with Items -->
     @else {
-    <div class="text-center mb-12">
+    <div class="flex justify-between items-center mb-12">
       <h1
         class="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100"
       >
         Your Shopping Cart
       </h1>
+      <p-button
+        label="Clear Cart"
+        icon="pi pi-trash"
+        (onClick)="clearCart()"
+        severity="danger"
+        [outlined]="true"
+      ></p-button>
     </div>
     <div class="grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
       <!-- Cart Items List -->
@@ -133,16 +140,16 @@
             class="flex justify-between text-lg text-gray-600 dark:text-gray-300"
           >
             <span>Subtotal</span
-            ><span class="font-medium text-gray-900 dark:text-gray-100">{{
-              cartService.subtotal() | currency
+            ><span class="font-medium text-gray-900 dark:text-gray-100">{{ 
+              cartService.subtotal() | currency 
             }}</span>
           </div>
           <div
             class="flex justify-between text-lg text-gray-600 dark:text-gray-300"
           >
             <span>Shipping</span
-            ><span class="font-medium text-gray-900 dark:text-gray-100">{{
-              cartService.basketQuery.data()?.shippingPrice | currency
+            ><span class="font-medium text-gray-900 dark:text-gray-100">{{ 
+              cartService.basketQuery.data()?.shippingPrice | currency 
             }}</span>
           </div>
           <hr class="my-2 border-gray-200 dark:border-slate-700" />
@@ -171,3 +178,4 @@
     }
   </div>
 </div>
+'''

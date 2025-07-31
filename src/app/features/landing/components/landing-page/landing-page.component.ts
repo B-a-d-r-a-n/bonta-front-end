@@ -15,6 +15,7 @@ import {
   ProductSortingOptions,
   BasketItemDTO,
   BasketDTO,
+  TypeResponse,
 } from '@core/models';
 import { CartQueries } from '@features/cart/queries/cart.queries';
 import { ToastService } from '@core/services/toast.service';
@@ -22,6 +23,14 @@ import { StorageUtils } from '@shared/utils/storage.utils';
 import { STORAGE_KEYS } from '@core/constants/storage-keys';
 import { v4 as uuidv4 } from 'uuid';
 import { CartDataService } from '@features/cart/services/cart-data.service';
+
+interface Category {
+  label: string;
+  icon: string;
+  typeId: number;
+  bgColor: string;
+  textColor: string;
+}
 
 @Component({
   selector: 'app-landing-page',
@@ -50,11 +59,26 @@ export class LandingPageComponent {
     })
   );
 
+  typesQuery = injectQuery(() => this.productQueries.getTypes());
+
   // Computed signals for template usage
   isFeaturedProductsLoading = computed(() =>
     this.featuredProductsQuery.isPending()
   );
   featuredProductsData = computed(() => this.featuredProductsQuery.data());
+  categories = computed(() => {
+    const types = this.typesQuery.data();
+    if (!types) {
+      return [];
+    }
+    return types.map((type: TypeResponse) => ({
+      label: type.name,
+      icon: 'pi-comments',
+      typeId: type.id,
+      bgColor: 'bg-gray-100',
+      textColor: 'text-gray-800',
+    }));
+  });
 
   bannerImages = [
     {
@@ -68,65 +92,6 @@ export class LandingPageComponent {
     {
       src: 'https://primefaces.org/cdn/primeng/images/galleria/galleria3.jpg',
       alt: 'Upgrade your home with our new appliances',
-    },
-  ];
-
-  categories = [
-    {
-      label: 'Electronics',
-      icon: 'pi-headphones',
-      typeId: 1,
-      bgColor: 'bg-blue-100',
-      textColor: 'text-blue-600',
-    },
-    {
-      label: 'Fashion',
-      icon: 'pi-user',
-      typeId: 2,
-      bgColor: 'bg-pink-100',
-      textColor: 'text-pink-600',
-    },
-    {
-      label: 'Home',
-      icon: 'pi-home',
-      typeId: 3,
-      bgColor: 'bg-green-100',
-      textColor: 'text-green-600',
-    },
-    {
-      label: 'Kids',
-      icon: 'pi-prime',
-      typeId: 4,
-      bgColor: 'bg-yellow-100',
-      textColor: 'text-yellow-600',
-    },
-    {
-      label: 'Beauty',
-      icon: 'pi-gift',
-      typeId: 5,
-      bgColor: 'bg-purple-100',
-      textColor: 'text-purple-600',
-    },
-    {
-      label: 'Mobiles',
-      icon: 'pi-mobile',
-      typeId: 6,
-      bgColor: 'bg-gray-200',
-      textColor: 'text-gray-700',
-    },
-    {
-      label: 'Books',
-      icon: 'pi-book',
-      typeId: 7,
-      bgColor: 'bg-indigo-100',
-      textColor: 'text-indigo-600',
-    },
-    {
-      label: 'Sports',
-      icon: 'pi-bolt',
-      typeId: 8,
-      bgColor: 'bg-red-100',
-      textColor: 'text-red-600',
     },
   ];
 }

@@ -1,4 +1,6 @@
-<p-card styleClass="product-card group dark:bg-slate-800 dark:border-slate-700">
+<p-card
+  styleClass="product-card group bg-white dark:bg-slate-800 dark:border-slate-700"
+>
   <ng-template pTemplate="header">
     <div
       class="relative overflow-hidden rounded-t-lg cursor-pointer"
@@ -31,9 +33,11 @@
   </p>
 
   <div class="mt-auto flex items-center justify-between">
-    <span class="text-2xl font-bold text-gray-900 dark:text-white">{{
-      product.price | currency
-    }}</span>
+    <span
+      id="product-price"
+      class="text-2xl font-bold text-gray-900 dark:text-white"
+      >{{ product.price | currency }}</span
+    >
     <p-button
       icon="pi pi-cart-plus"
       [rounded]="true"

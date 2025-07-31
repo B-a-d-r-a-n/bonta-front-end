@@ -70,4 +70,21 @@ export class CartListComponent {
       },
     });
   }
+
+  clearCart(): void {
+    this.confirmationService.confirm({
+      message: 'Are you sure you want to clear your entire cart?',
+      header: 'Confirm Clear Cart',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        const currentBasket = this.cartService.basketQuery.data();
+        if (currentBasket) {
+          this.cartService.updateBasketMutation.mutate({
+            ...currentBasket,
+            items: [],
+          });
+        }
+      },
+    });
+  }
 }
